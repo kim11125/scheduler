@@ -1,0 +1,89 @@
+/* ── Light Theme (default) ───────────────────────── */
+[data-theme="light"] {
+  --color-primary:         #1976D2;
+  --color-primary-dark:    #1565C0;
+  --color-primary-light:   #E3F2FD;
+  --color-on-primary:      #FFFFFF;
+  --color-background:      #FFFFFF;
+  --color-surface:         #F4F7FC;
+  --color-text:            #1A1A1A;
+  --color-text-secondary:  #757575;
+  --color-separator:       #E0E0E0;
+  --color-status-bar:      #1565C0;
+  --color-card:            #FFFFFF;
+  --color-input-bg:        #F5F5F5;
+  --color-input-border:    #BDBDBD;
+  --color-btn:             #1976D2;
+  --color-btn-text:        #FFFFFF;
+  --color-overlay:         rgba(0,0,0,0.45);
+
+  --color-sunday:          #D32F2F;
+  --color-saturday:        #1565C0;
+
+  --shadow-card:  0 1px 4px rgba(0,0,0,0.10);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.18);
+  --radius-card: 8px;
+}
+
+/* ── Dark Theme ──────────────────────────────────── */
+[data-theme="dark"] {
+  --color-primary:         #00CBA8;
+  --color-primary-dark:    #00A88A;
+  --color-primary-light:   rgba(0,203,168,0.18);
+  --color-on-primary:      #060E18;
+  --color-background:      #0C1929;
+  --color-surface:         #142235;
+  --color-text:            #E8F4FF;
+  --color-text-secondary:  #5A7A99;
+  --color-separator:       #1A3050;
+  --color-status-bar:      #060E18;
+  --color-card:            #142235;
+  --color-input-bg:        #1A3050;
+  --color-input-border:    #1E3A5A;
+  --color-btn:             #00CBA8;
+  --color-btn-text:        #060E18;
+  --color-overlay:         rgba(0,0,0,0.65);
+
+  --color-sunday:          #FF6B6B;
+  --color-saturday:        #74C0FC;
+
+  --shadow-card:  0 1px 6px rgba(0,0,0,0.40);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.55);
+  --radius-card: 8px;
+}
+
+/* ── Orange Theme ────────────────────────────────── */
+[data-theme="orange"] {
+  --color-primary:         #F4511E;
+  --color-primary-dark:    #BF360C;
+  --color-primary-light:   #FBE9E7;
+  --color-on-primary:      #FFFFFF;
+  --color-background:      #F5F5F5;
+  --color-surface:         #FFFFFF;
+  --color-text:            #212121;
+  --color-text-secondary:  #616161;
+  --color-separator:       #E0E0E0;
+  --color-status-bar:      #BF360C;
+  --color-card:            #FFFFFF;
+  --color-input-bg:        #FAF0ED;
+  --color-input-border:    #FFCCBC;
+  --color-btn:             #F4511E;
+  --color-btn-text:        #FFFFFF;
+  --color-overlay:         rgba(0,0,0,0.45);
+
+  --color-sunday:          #D32F2F;
+  --color-saturday:        #1565C0;
+
+  --shadow-card:  0 1px 4px rgba(0,0,0,0.10);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.18);
+  --radius-card: 8px;
+}
+
+/* ── Category dot colors (theme-independent) ─────── */
+:root {
+  --color-dot-baseball:    #F44336;
+  --color-dot-basketball:  #FF9800;
+  --color-dot-soccer:      #4CAF50;
+  --color-dot-volleyball:  #9C27B0;
+  --color-dot-etc:         #607D8B;
+}
