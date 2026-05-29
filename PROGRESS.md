@@ -57,41 +57,22 @@ Oracle Linux 서버 한 대에 배포하는 관리자 승인 기반 폐쇄형 �
 
 ---
 
-## 현재 진행 중
+## 서버 세팅 완료 ✅
 
-### Docker 설치 (서버에서 진행 중)
-아래 명령어까지 완료:
-```bash
-# GPG 키 등록 완료
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-# Docker repo 등록 완료
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable" | sudo tee /etc/apt/sources.list.d/docker.list
-
-sudo apt update  # 완료
-```
-
-**다음에 바로 실행할 명령어:**
-```bash
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-sudo usermod -aG docker ubuntu
-newgrp docker
-docker --version
-docker compose version
-```
+| 항목 | 결과 |
+|------|------|
+| OS 업데이트 | 완료 |
+| Swap 2GB | 완료 |
+| 방화벽 포트 (80, 443, 8080) | 완료 |
+| Docker 28.1.1 | 완료 |
+| Docker Compose v2.35.1 | 완료 |
+| PostgreSQL 동작 확인 | 완료 |
 
 ---
 
 ## 앞으로 해야 할 작업
 
-### 1. 서버 세팅 마무리
-```
-[ ] Docker 설치 완료
-[ ] Docker Compose 버전 확인
-[ ] PostgreSQL 컨테이너 테스트 실행
-```
-
-### 2. Backend 구현 (Spring Boot)
+### 1. Backend 구현 (Spring Boot) — 예상 4~6시간
 ```
 [ ] 프로젝트 생성 (Spring Initializr)
       - spring-boot-starter-web
