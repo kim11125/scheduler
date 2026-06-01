@@ -1,36 +1,51 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { authApi } from '@/api/auth'
 import type { User } from '@/types'
-
-const MOCK_USERS: (User & { password: string })[] = [
-  { id: 1, username: 'admin',  password: 'admin1234', name: '관리자',  role: 'ADMIN', status: 'ACTIVE' },
-  { id: 2, username: 'user1',  password: 'pass1234',  name: '홍길동',  role: 'USER',  status: 'ACTIVE' },
-  { id: 3, username: 'user2',  password: 'pass1234',  name: '김철수',  role: 'USER',  status: 'PENDING' },
-  { id: 4, username: 'user3',  password: 'pass1234',  name: '이영희',  role: 'USER',  status: 'REJECTED' },
-]
 
 export const useAuthStore = defineStore('auth', () => {
   const saved = localStorage.getItem('auth_user')
   const user = ref<User | null>(saved ? JSON.parse(saved) : null)
   const error = ref<string | null>(null)
 
-  function login(username: string, password: string): boolean {
-    const found = MOCK_USERS.find(u => u.username === username && u.password === password)
-    if (!found) {
-      error.value = '아이디 또는 비밀번호가 올바르지 않습니다.'
+  async function login(username: string, password: string): Promise<boolean> {
+    error.value = null
+    try {
+      const res = await authApi.login(username, password)
+      const data = res.data
+      localStorage.setItem('token', data.token)
+      user.value = {
+        id: data.userId,
+        username,
+        name: data.name,
+        role: data.role as 'ADMIN' | 'USER',
+        status: data.status as any,
+      }
+      localStorage.setItem('auth_user', JSON.stringify(user.value))
+      return true
+    } catch (e: any) {
+      error.value = e.response?.data?.message || '로그인에 실패했습니다.'
       return false
     }
-    const { password: _, ...userInfo } = found
-    user.value = userInfo
-    localStorage.setItem('auth_user', JSON.stringify(userInfo))
+  }
+
+  async function register(username: string, password: string, name: string): Promise<boolean> {
     error.value = null
-    return true
+    try {
+      await authApi.register(username, password, name)
+      return true
+    } catch (e: any) {
+      error.value = e.response?.data?.message || '회원가입에 실패했습니다.'
+      return false
+    }
   }
 
   function logout() {
     user.value = null
+    error.value = null
+    localStorage.removeItem('token')
     localStorage.removeItem('auth_user')
   }
 
-  return { user, error, login, logout }
+  return { user, error, login, register, logout }
 })

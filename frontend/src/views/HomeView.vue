@@ -196,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
@@ -343,24 +343,28 @@ function validateForm(): boolean {
   return Object.keys(formErrors).length === 0
 }
 
-function handleSave() {
+async function handleSave() {
   if (!validateForm()) return
   if (editTarget.value) {
-    scheduleStore.update(editTarget.value.id, { ...formData })
+    await scheduleStore.update(editTarget.value.id, { ...formData })
   } else {
-    scheduleStore.add({ ...formData })
+    await scheduleStore.add({ ...formData })
     selectedDate.value = formData.date
   }
   closeModal()
 }
 
-function handleDelete() {
+async function handleDelete() {
   if (!editTarget.value) return
   if (confirm('일정을 삭제하시겠습니까?')) {
-    scheduleStore.remove(editTarget.value.id)
+    await scheduleStore.remove(editTarget.value.id)
     closeModal()
   }
 }
+
+onMounted(() => {
+  scheduleStore.fetchAll()
+})
 
 function handleLogout() {
   authStore.logout()

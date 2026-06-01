@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
@@ -200,6 +200,11 @@ function formatDate(iso: string): string {
   const d = new Date(iso)
   return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
+
+onMounted(() => {
+  usersStore.fetchAll()
+  scheduleStore.fetchAll()
+})
 
 function handleLogout() {
   authStore.logout()

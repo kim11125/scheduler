@@ -71,8 +71,8 @@ const form = reactive({ username: '', password: '' })
 const themeLabel = computed(() => ({ light: '라이트', dark: '다크', orange: '오렌지' }[themeStore.current]))
 const themeColor = computed(() => ({ light: '#1976D2', dark: '#00CBA8', orange: '#F4511E' }[themeStore.current]))
 
-function handleLogin() {
-  const ok = authStore.login(form.username, form.password)
+async function handleLogin() {
+  const ok = await authStore.login(form.username, form.password)
   if (!ok) return
   const { role, status } = authStore.user!
   if (role === 'ADMIN' && status === 'ACTIVE') router.push('/admin')
