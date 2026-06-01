@@ -18,7 +18,7 @@ public class UserResponse {
         this.id = u.getId();
         this.username = u.getUsername();
         this.name = u.getName();
-        this.role = u.getRole().name();
+        this.role = u.getRole();
         this.status = u.getStatus().name();
         this.createdAt = u.getCreatedAt();
     }

@@ -40,7 +40,9 @@ export const useScheduleStore = defineStore('schedule', () => {
       category: data.category as Category,
       baseballType: data.baseballType || null,
       date: data.date,
+      endDate: data.endDate || null,
       memo: data.memo || undefined,
+      targetUserId: data.targetUserId || null,
     })
     schedules.value.unshift(res.data)
     return res.data
@@ -52,6 +54,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       category: data.category as Category,
       baseballType: data.baseballType || null,
       date: data.date,
+      endDate: data.endDate || null,
       memo: data.memo || undefined,
     })
     const idx = schedules.value.findIndex(s => s.id === id)

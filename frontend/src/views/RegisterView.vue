@@ -33,8 +33,10 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const done = ref(false)
 const form = reactive({ username: '', password: '', passwordConfirm: '', name: '' })
 const errors = reactive<Record<string, string>>({})
@@ -55,8 +57,14 @@ function validate(): boolean {
   return Object.keys(errors).length === 0
 }
 
-function handleSubmit() {
-  if (validate()) done.value = true
+async function handleSubmit() {
+  if (!validate()) return
+  const ok = await authStore.register(form.username, form.password, form.name)
+  if (ok) {
+    done.value = true
+  } else {
+    errors.username = authStore.error || '회원가입에 실패했습니다.'
+  }
 }
 </script>
 

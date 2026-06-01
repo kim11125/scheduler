@@ -49,8 +49,8 @@
 
       <!-- Dev hint -->
       <div class="dev-hint">
-        <p>테스트 계정: user1 / pass1234</p>
         <p>관리자: admin / admin1234</p>
+        <p>일반 사용자는 회원가입 후 관리자 승인 필요</p>
       </div>
     </div>
   </div>
@@ -75,7 +75,8 @@ async function handleLogin() {
   const ok = await authStore.login(form.username, form.password)
   if (!ok) return
   const { role, status } = authStore.user!
-  if (role === 'ADMIN' && status === 'ACTIVE') router.push('/admin')
+  const isAdmin = role === 'ADMIN' || role === 'MANAGER'
+  if (isAdmin && status === 'ACTIVE') router.push('/admin')
   else if (status === 'ACTIVE') router.push('/')
   else router.push('/pending')
 }

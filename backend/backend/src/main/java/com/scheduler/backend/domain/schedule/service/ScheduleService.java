@@ -27,8 +27,10 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleResponse create(Long userId, ScheduleRequest req) {
-        User user = userRepository.findById(userId)
+    public ScheduleResponse create(Long requesterId, ScheduleRequest req) {
+        // 관리자가 다른 유저 대신 추가하는 경우
+        Long targetId = (req.getTargetUserId() != null) ? req.getTargetUserId() : requesterId;
+        User user = userRepository.findById(targetId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Schedule schedule = Schedule.builder()
@@ -37,6 +39,7 @@ public class ScheduleService {
                 .category(req.getCategory())
                 .baseballType(req.getBaseballType())
                 .date(req.getDate())
+                .endDate(req.getEndDate())
                 .memo(req.getMemo())
                 .build();
 
@@ -44,11 +47,11 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleResponse update(Long userId, Long scheduleId, ScheduleRequest req) {
+    public ScheduleResponse update(Long requesterId, Long scheduleId, ScheduleRequest req, boolean isAdmin) {
         Schedule schedule = scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
 
-        if (!schedule.getUser().getId().equals(userId)) {
+        if (!isAdmin && !schedule.getUser().getId().equals(requesterId)) {
             throw new IllegalArgumentException("수정 권한이 없습니다.");
         }
 
@@ -56,17 +59,18 @@ public class ScheduleService {
         schedule.setCategory(req.getCategory());
         schedule.setBaseballType(req.getBaseballType());
         schedule.setDate(req.getDate());
+        schedule.setEndDate(req.getEndDate());
         schedule.setMemo(req.getMemo());
 
         return new ScheduleResponse(schedule);
     }
 
     @Transactional
-    public void delete(Long userId, Long scheduleId) {
+    public void delete(Long requesterId, Long scheduleId, boolean isAdmin) {
         Schedule schedule = scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
 
-        if (!schedule.getUser().getId().equals(userId)) {
+        if (!isAdmin && !schedule.getUser().getId().equals(requesterId)) {
             throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
 

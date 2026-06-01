@@ -7,7 +7,8 @@ const router = createRouter({
     { path: '/login',    name: 'login',    component: () => import('@/views/LoginView.vue') },
     { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue') },
     { path: '/pending',  name: 'pending',  component: () => import('@/views/PendingView.vue') },
-    { path: '/',         name: 'home',     component: () => import('@/views/HomeView.vue') },
+    { path: '/',            name: 'home',         component: () => import('@/views/HomeView.vue') },
+    { path: '/my-schedules', name: 'my-schedules', component: () => import('@/views/HomeView.vue') },
     {
       path: '/admin',
       name: 'admin',
@@ -34,28 +35,36 @@ router.beforeEach((to) => {
 
   const { role, status } = auth.user
 
+  const isAdmin = role === 'ADMIN' || role === 'MANAGER'
+
   // 이미 로그인 상태에서 공개 페이지 접근 → 자동 분기
   if (publicRoutes.includes(to.name as string)) {
-    if (role === 'ADMIN' && status === 'ACTIVE') return '/admin'
+    if (isAdmin && status === 'ACTIVE') return '/admin'
     if (status === 'ACTIVE') return '/'
     return '/pending'
   }
 
-  // 관리자 페이지: ADMIN + ACTIVE만
+  // 관리자 페이지: ADMIN or MANAGER + ACTIVE만
   if (to.path.startsWith('/admin')) {
-    if (role !== 'ADMIN' || status !== 'ACTIVE') return '/'
+    if (!isAdmin || status !== 'ACTIVE') return '/'
+    return true
+  }
+
+  // 내 일정: 관리자도 접근 가능
+  if (to.name === 'my-schedules') {
+    if (status !== 'ACTIVE') return '/pending'
     return true
   }
 
   // 일반 사용자 페이지: ACTIVE만
   if (to.name === 'home') {
     if (status !== 'ACTIVE') return '/pending'
-    if (role === 'ADMIN') return '/admin'   // 관리자는 / 대신 /admin
+    if (isAdmin) return '/admin'
   }
 
   if (to.name === 'pending') {
     if (status === 'ACTIVE') {
-      return role === 'ADMIN' ? '/admin' : '/'
+      return isAdmin ? '/admin' : '/'
     }
   }
 

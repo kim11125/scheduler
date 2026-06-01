@@ -3,7 +3,6 @@ package com.scheduler.backend.domain.auth.service;
 import com.scheduler.backend.domain.auth.dto.LoginRequest;
 import com.scheduler.backend.domain.auth.dto.LoginResponse;
 import com.scheduler.backend.domain.auth.dto.RegisterRequest;
-import com.scheduler.backend.domain.user.entity.Role;
 import com.scheduler.backend.domain.user.entity.User;
 import com.scheduler.backend.domain.user.entity.UserStatus;
 import com.scheduler.backend.domain.user.repository.UserRepository;
@@ -30,7 +29,7 @@ public class AuthService {
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .name(req.getName())
-                .role(Role.USER)
+                .role("USER")
                 .status(UserStatus.PENDING)
                 .build();
         userRepository.save(user);
@@ -45,8 +44,8 @@ public class AuthService {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
-        String token = jwtProvider.generate(user.getId(), user.getRole().name());
+        String token = jwtProvider.generate(user.getId(), user.getRole());
         return new LoginResponse(token, user.getId(), user.getName(),
-                user.getRole().name(), user.getStatus().name());
+                user.getRole(), user.getStatus().name());
     }
 }

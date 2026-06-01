@@ -17,5 +17,7 @@ public class ScheduleRequest {
     private BaseballType baseballType;
     @NotNull
     private LocalDate date;
+    private LocalDate endDate;
     private String memo;
+    private Long targetUserId; // 관리자가 다른 유저 대신 추가할 때
 }

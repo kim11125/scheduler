@@ -1,0 +1,1 @@
+ALTER TABLE schedules ADD COLUMN end_date DATE NULL;

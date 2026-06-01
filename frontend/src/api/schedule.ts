@@ -6,7 +6,9 @@ export interface SchedulePayload {
   category: Category
   baseballType?: BaseballType | null
   date: string
+  endDate?: string | null
   memo?: string
+  targetUserId?: number | null
 }
 
 export const scheduleApi = {

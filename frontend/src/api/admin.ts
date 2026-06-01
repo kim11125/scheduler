@@ -9,4 +9,9 @@ export const adminApi = {
   activate: (id: number) => client.put(`/api/admin/users/${id}/activate`),
   getAllSchedules: () => client.get('/api/admin/schedules'),
   getUserSchedules: (userId: number) => client.get(`/api/admin/schedules/user/${userId}`),
+  deleteSchedule: (id: number) => client.delete(`/api/admin/schedules/${id}`),
+  changeUserPassword: (id: number, newPassword: string) =>
+    client.put(`/api/admin/users/${id}/password`, { newPassword }),
+  changeUserRole: (id: number, role: string) =>
+    client.put(`/api/admin/users/${id}/role`, { role }),
 }

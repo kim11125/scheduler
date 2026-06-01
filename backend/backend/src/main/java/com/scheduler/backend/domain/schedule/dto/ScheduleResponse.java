@@ -15,6 +15,7 @@ public class ScheduleResponse {
     private final String category;
     private final String baseballType;
     private final LocalDate date;
+    private final LocalDate endDate;
     private final String memo;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -27,6 +28,7 @@ public class ScheduleResponse {
         this.category = s.getCategory().name();
         this.baseballType = s.getBaseballType() != null ? s.getBaseballType().name() : null;
         this.date = s.getDate();
+        this.endDate = s.getEndDate();
         this.memo = s.getMemo();
         this.createdAt = s.getCreatedAt();
         this.updatedAt = s.getUpdatedAt();

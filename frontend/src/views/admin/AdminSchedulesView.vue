@@ -4,7 +4,10 @@
     <header class="admin-header">
       <button class="back-btn" @click="router.push('/admin')">‹</button>
       <span class="admin-title">전체 일정 조회</span>
-      <div style="width:32px"></div>
+      <div class="view-toggle">
+        <button :class="['toggle-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'">≡</button>
+        <button :class="['toggle-btn', { active: viewMode === 'calendar' }]" @click="viewMode = 'calendar'">▦</button>
+      </div>
     </header>
 
     <div class="admin-body">
@@ -53,36 +56,65 @@
       </div>
 
       <!-- 결과 수 -->
-      <div class="result-count">
-        {{ filteredSchedules.length }}건
-      </div>
+      <div class="result-count">{{ filteredSchedules.length }}건</div>
 
-      <!-- 일정 목록 -->
-      <div class="sched-list" v-if="filteredSchedules.length > 0">
-        <div
-          v-for="s in filteredSchedules" :key="s.id"
-          class="sched-card"
-          @click="openEdit(s)"
-        >
-          <div class="sched-dot-wrap">
-            <span class="sched-dot" :style="{ background: DOT_COLORS[s.category] }"></span>
-            <span class="sched-date-col">{{ formatDay(s.date) }}</span>
-          </div>
-          <div class="sched-body">
-            <div class="sched-top">
-              <span class="sched-badge"
-                :style="{ color: DOT_COLORS[s.category], background: DOT_COLORS[s.category]+'20' }">
-                {{ CATEGORY_LABELS[s.category] }}{{ s.baseballType ? (s.baseballType === 'HOME' ? ' · 홈' : ' · 원정') : '' }}
-              </span>
-              <span class="sched-user-tag">{{ getUserName(s.userId) }}</span>
+      <!-- 목록 뷰 -->
+      <template v-if="viewMode === 'list'">
+        <div class="sched-list" v-if="filteredSchedules.length > 0">
+          <div
+            v-for="s in filteredSchedules" :key="s.id"
+            class="sched-card"
+            @click="openEdit(s)"
+          >
+            <div class="sched-dot-wrap">
+              <span class="sched-dot" :style="{ background: DOT_COLORS[s.category] }"></span>
+              <span class="sched-date-col">{{ formatDay(s.date) }}</span>
             </div>
-            <span class="sched-title">{{ s.title }}</span>
-            <span v-if="s.memo" class="sched-memo">{{ s.memo }}</span>
+            <div class="sched-body">
+              <div class="sched-top">
+                <span class="sched-badge"
+                  :style="{ color: DOT_COLORS[s.category], background: DOT_COLORS[s.category]+'20' }">
+                  {{ CATEGORY_LABELS[s.category] }}{{ s.baseballType ? (s.baseballType === 'HOME' ? ' · 홈' : ' · 원정') : '' }}
+                </span>
+                <span class="sched-user-tag">{{ getUserName(s.userId) }}</span>
+              </div>
+              <span class="sched-title">{{ s.title }}</span>
+              <span v-if="s.memo" class="sched-memo">{{ s.memo }}</span>
+            </div>
+            <span class="sched-arrow">›</span>
           </div>
-          <span class="sched-arrow">›</span>
         </div>
-      </div>
-      <div class="empty-msg" v-else>해당하는 일정이 없습니다.</div>
+        <div class="empty-msg" v-else>해당하는 일정이 없습니다.</div>
+      </template>
+
+      <!-- 캘린더 뷰 -->
+      <template v-else>
+        <div class="cal-grid-wrap">
+          <div class="cal-dow-row">
+            <span v-for="d in ['일','월','화','수','목','금','토']" :key="d" class="cal-dow">{{ d }}</span>
+          </div>
+          <div class="cal-grid">
+            <div
+              v-for="(cell, idx) in calCells" :key="idx"
+              class="cal-cell-admin"
+              :class="{ empty: !cell.isCurrentMonth, today: cell.isToday }"
+            >
+              <span class="cal-day-num" v-if="cell.isCurrentMonth">{{ cell.day }}</span>
+              <div class="cal-events" v-if="cell.isCurrentMonth">
+                <div
+                  v-for="s in getSchedulesByDate(cell.date)" :key="s.id"
+                  class="cal-event"
+                  :style="{ background: DOT_COLORS[s.category] }"
+                  @click="openEdit(s)"
+                >
+                  <span class="cal-event-user">{{ getUserName(s.userId) }}</span>
+                  <span class="cal-event-title">{{ s.title }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
 
     </div>
 
@@ -103,8 +135,12 @@
 
           <form class="modal-form" @submit.prevent="handleSave">
             <div class="form-field">
-              <label class="form-label">날짜</label>
+              <label class="form-label">시작일</label>
               <input v-model="formData.date" type="date" class="form-input" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">종료일 <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(선택)</span></label>
+              <input v-model="formData.endDate" type="date" class="form-input" :min="formData.date" />
             </div>
             <div class="form-field">
               <label class="form-label">제목</label>
@@ -165,10 +201,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUsersStore } from '@/stores/users'
+import { adminApi } from '@/api/admin'
 import type { Schedule, Category, ScheduleFormData } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 
@@ -176,6 +213,34 @@ const router = useRouter()
 const route  = useRoute()
 const scheduleStore = useScheduleStore()
 const usersStore    = useUsersStore()
+
+const allSchedules = ref<Schedule[]>([])
+const viewMode = ref<'list' | 'calendar'>('list')
+
+onMounted(async () => {
+  await usersStore.fetchAll()
+  const res = await adminApi.getAllSchedules()
+  allSchedules.value = res.data
+})
+
+// 캘린더 셀 생성
+const calCells = computed(() => {
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const firstDay = new Date(viewYear.value, viewMonth.value - 1, 1)
+  const lastDay  = new Date(viewYear.value, viewMonth.value, 0)
+  const cells = []
+  // 앞 빈칸
+  for (let i = 0; i < firstDay.getDay(); i++) cells.push({ isCurrentMonth: false, date: '', day: 0, isToday: false })
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dateStr = `${viewYear.value}-${String(viewMonth.value).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    cells.push({ isCurrentMonth: true, date: dateStr, day: d, isToday: dateStr === todayStr })
+  }
+  return cells
+})
+
+function getSchedulesByDate(date: string): Schedule[] {
+  return filteredSchedules.value.filter(s => s.date === date)
+}
 
 // ── 색상 맵 ──────────────────────────────────────────────────────────────
 const DOT_COLORS: Record<Category, string> = {
@@ -217,7 +282,7 @@ function getUserName(userId: number): string {
 
 const filteredSchedules = computed(() => {
   const prefix = `${viewYear.value}-${String(viewMonth.value).padStart(2, '0')}`
-  return scheduleStore.schedules
+  return allSchedules.value
     .filter(s => {
       if (!s.date.startsWith(prefix)) return false
       if (userFilter.value !== null && s.userId !== userFilter.value) return false
@@ -230,7 +295,7 @@ const filteredSchedules = computed(() => {
 // ── 수정 모달 ─────────────────────────────────────────────────────────────
 const editTarget = ref<Schedule | null>(null)
 const formData = reactive<ScheduleFormData>({
-  title: '', category: '', baseballType: null, date: '', memo: '',
+  title: '', category: '', baseballType: null, date: '', endDate: '', memo: '',
 })
 
 function openEdit(s: Schedule) {
@@ -239,6 +304,7 @@ function openEdit(s: Schedule) {
   formData.category = s.category
   formData.baseballType = s.baseballType
   formData.date = s.date
+  formData.endDate = s.endDate || ''
   formData.memo = s.memo ?? ''
 }
 
@@ -460,4 +526,51 @@ function formatDay(dateStr: string): string {
 }
 .slide-enter-from, .slide-leave-to { opacity: 0; max-height: 0; }
 .slide-enter-to,   .slide-leave-from { opacity: 1; max-height: 200px; }
+
+/* 뷰 토글 */
+.view-toggle { display: flex; gap: 4px; }
+.toggle-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  font-size: 16px; color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.toggle-btn.active { background: rgba(255,255,255,0.35); color: #fff; }
+
+/* 캘린더 뷰 */
+.cal-grid-wrap { display: flex; flex-direction: column; gap: 0; }
+.cal-dow-row {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  text-align: center; padding: 6px 0;
+}
+.cal-dow { font-size: 11px; color: var(--color-text-secondary); font-weight: 600; }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  border-left: 1px solid var(--color-separator);
+  border-top: 1px solid var(--color-separator);
+}
+.cal-cell-admin {
+  border-right: 1px solid var(--color-separator);
+  border-bottom: 1px solid var(--color-separator);
+  min-height: 72px; padding: 4px;
+  background: var(--color-card);
+}
+.cal-cell-admin.empty { background: var(--color-background); }
+.cal-cell-admin.today .cal-day-num {
+  background: var(--color-primary); color: #fff;
+  border-radius: 50%; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-day-num { font-size: 11px; font-weight: 600; color: var(--color-text); margin-bottom: 2px; }
+.cal-events { display: flex; flex-direction: column; gap: 1px; }
+.cal-event {
+  border-radius: 3px; padding: 1px 3px;
+  font-size: 9px; color: #fff;
+  display: flex; flex-direction: column;
+  cursor: pointer; line-height: 1.3;
+  overflow: hidden;
+}
+.cal-event-user { font-weight: 700; font-size: 8px; opacity: 0.9; }
+.cal-event-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

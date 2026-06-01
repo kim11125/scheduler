@@ -12,9 +12,10 @@
             @click="themeStore.setTheme(t.key)"
           />
         </div>
+        <button class="my-schedule-btn" @click="router.push('/my-schedules')">📅 내 일정</button>
         <button class="logout-btn" @click="handleLogout">
           <span>{{ authStore.user?.name }}</span>
-          <span class="logout-icon">↩</span>
+          <span class="logout-label">로그아웃</span>
         </button>
       </div>
     </header>
@@ -23,22 +24,23 @@
 
       <!-- 요약 카드 -->
       <div class="stat-row">
-        <div class="stat-card" :class="{ highlight: usersStore.pendingUsers.length > 0 }">
+        <div class="stat-card" :class="{ highlight: usersStore.pendingUsers.length > 0 }"
+             @click="scrollTo('pending')">
           <span class="stat-num">{{ usersStore.pendingUsers.length }}</span>
           <span class="stat-label">승인 대기</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" @click="statusFilter = 'ACTIVE'; scrollTo('users')">
           <span class="stat-num">{{ activeCount }}</span>
           <span class="stat-label">활성 사용자</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-num">{{ scheduleStore.schedules.length }}</span>
+        <div class="stat-card" @click="router.push('/admin/schedules')">
+          <span class="stat-num">{{ totalScheduleCount }}</span>
           <span class="stat-label">전체 일정</span>
         </div>
       </div>
 
       <!-- 승인 대기 섹션 -->
-      <section class="section">
+      <section class="section" ref="pendingRef">
         <div class="section-header">
           <h2 class="section-title">
             승인 대기
@@ -57,14 +59,14 @@
             v-for="u in usersStore.pendingUsers" :key="u.id"
             class="user-card pending"
           >
-            <div class="user-info">
+            <div class="user-info" @click="openUserModal(u)">
               <div class="user-avatar" :style="{ background: avatarColor(u.name) }">
                 {{ u.name[0] }}
               </div>
               <div class="user-meta">
                 <span class="user-name">{{ u.name }}</span>
                 <span class="user-id">@{{ u.username }}</span>
-                <span class="user-date">신청일: {{ formatDate(u.createdAt) }}</span>
+                <span class="user-date">등록일: {{ formatDate(u.createdAt) }}</span>
               </div>
             </div>
             <div class="user-actions">
@@ -76,7 +78,7 @@
       </section>
 
       <!-- 전체 사용자 섹션 -->
-      <section class="section">
+      <section class="section" ref="usersRef">
         <div class="section-header">
           <h2 class="section-title">전체 사용자</h2>
           <div class="filter-tabs">
@@ -92,6 +94,7 @@
           <div
             v-for="u in filteredUsers" :key="u.id"
             class="user-card"
+            @click="openUserModal(u)"
           >
             <div class="user-info">
               <div class="user-avatar" :style="{ background: avatarColor(u.name) }">
@@ -105,15 +108,7 @@
                 </span>
               </div>
             </div>
-            <div class="user-actions">
-              <button v-if="u.status === 'ACTIVE'"    class="btn-sm btn-disable"  @click="usersStore.disable(u.id)">비활성화</button>
-              <button v-if="u.status === 'DISABLED'"  class="btn-sm btn-activate" @click="usersStore.activate(u.id)">재활성화</button>
-              <button v-if="u.status === 'REJECTED'"  class="btn-sm btn-activate" @click="usersStore.activate(u.id)">승인</button>
-              <button v-if="u.status === 'ACTIVE'"
-                class="btn-sm btn-schedule"
-                @click="goToUserSchedules(u.id, u.name)"
-              >일정 보기</button>
-            </div>
+            <span class="card-arrow">›</span>
           </div>
 
           <div v-if="filteredUsers.length === 0" class="empty-msg">
@@ -122,15 +117,69 @@
         </div>
       </section>
 
-      <!-- 전체 일정 바로가기 -->
-      <section class="section">
-        <button class="btn-all-schedules" @click="router.push('/admin/schedules')">
-          📋 전체 일정 조회하기
-          <span class="arrow">›</span>
-        </button>
-      </section>
-
     </div>
+
+    <!-- 사용자 상세 모달 -->
+    <Teleport to="body">
+      <div class="modal-overlay" v-if="selectedUser" @click.self="closeUserModal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-header">
+            <h3>사용자 정보</h3>
+            <button class="modal-close" @click="closeUserModal">✕</button>
+          </div>
+
+          <div class="user-profile">
+            <div class="profile-avatar" :style="{ background: avatarColor(selectedUser.name) }">
+              {{ selectedUser.name[0] }}
+            </div>
+            <div class="profile-info">
+              <span class="profile-name">{{ selectedUser.name }}</span>
+              <span class="profile-id">@{{ selectedUser.username }}</span>
+              <span class="status-badge" :class="selectedUser.status.toLowerCase()">
+                {{ STATUS_LABELS[selectedUser.status] }}
+              </span>
+            </div>
+          </div>
+
+          <div class="profile-detail">
+            <div class="detail-row"><span class="detail-label">등록일</span><span>{{ formatDate(selectedUser.createdAt) }}</span></div>
+            <div class="detail-row">
+              <span class="detail-label">역할</span>
+              <!-- ADMIN만 역할 변경 가능 -->
+              <select v-if="authStore.user?.role === 'ADMIN'" class="role-select"
+                :value="selectedUser.role"
+                @change="handleRoleChange(selectedUser.id, ($event.target as HTMLSelectElement).value)">
+                <option value="USER">일반 사용자</option>
+                <option value="MANAGER">일반 관리자</option>
+                <option value="ADMIN">최고 관리자</option>
+              </select>
+              <span v-else>{{ ROLE_LABELS[selectedUser.role] || selectedUser.role }}</span>
+            </div>
+          </div>
+
+          <!-- 상태 변경 버튼 -->
+          <div class="modal-actions-row">
+            <button v-if="selectedUser.status === 'PENDING'"   class="btn-approve" @click="handleApprove(selectedUser.id)">승인</button>
+            <button v-if="selectedUser.status === 'PENDING'"   class="btn-reject"  @click="handleReject(selectedUser.id)">거절</button>
+            <button v-if="selectedUser.status === 'ACTIVE'"    class="btn-sm btn-disable"  @click="usersStore.disable(selectedUser.id)">비활성화</button>
+            <button v-if="selectedUser.status === 'DISABLED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">재활성화</button>
+            <button v-if="selectedUser.status === 'REJECTED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">승인</button>
+            <button v-if="selectedUser.status === 'ACTIVE'" class="btn-sm btn-schedule"
+              @click="goToUserSchedules(selectedUser.id, selectedUser.name)">일정 보기</button>
+          </div>
+
+          <!-- 비밀번호 변경 -->
+          <div class="pw-section">
+            <h4 class="pw-title">비밀번호 변경</h4>
+            <input v-model="newPw" type="password" class="pw-input" placeholder="새 비밀번호 입력" />
+            <input v-model="newPwConfirm" type="password" class="pw-input" placeholder="새 비밀번호 확인" />
+            <p v-if="pwError" class="pw-error">{{ pwError }}</p>
+            <button class="btn-pw-save" @click="handleAdminPwChange">변경</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -140,14 +189,23 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useUsersStore } from '@/stores/users'
-import { useScheduleStore } from '@/stores/schedule'
+import { adminApi } from '@/api/admin'
 import type { ThemeKey, UserStatus } from '@/types'
+import type { ManagedUser } from '@/stores/users'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const usersStore = useUsersStore()
-const scheduleStore = useScheduleStore()
+const totalScheduleCount = ref(0)
+
+const pendingRef = ref<HTMLElement | null>(null)
+const usersRef  = ref<HTMLElement | null>(null)
+
+function scrollTo(target: 'pending' | 'users') {
+  const el = target === 'pending' ? pendingRef.value : usersRef.value
+  el?.scrollIntoView({ behavior: 'smooth' })
+}
 
 const themes: { key: ThemeKey; color: string; label: string }[] = [
   { key: 'light',  color: '#1976D2', label: '라이트' },
@@ -181,11 +239,58 @@ const filteredUsers = computed(() => {
   return usersStore.allUsers.filter(u => u.status === statusFilter.value)
 })
 
+// 사용자 모달
+const selectedUser = ref<ManagedUser | null>(null)
+const newPw = ref('')
+const newPwConfirm = ref('')
+const pwError = ref('')
+
+function openUserModal(u: ManagedUser) {
+  selectedUser.value = u
+  newPw.value = ''
+  newPwConfirm.value = ''
+  pwError.value = ''
+}
+function closeUserModal() { selectedUser.value = null }
+
+async function handleAdminPwChange() {
+  pwError.value = ''
+  if (newPw.value.length < 6) { pwError.value = '6자 이상 입력하세요.'; return }
+  if (newPw.value !== newPwConfirm.value) { pwError.value = '비밀번호가 일치하지 않습니다.'; return }
+  try {
+    await adminApi.changeUserPassword(selectedUser.value!.id, newPw.value)
+    newPw.value = ''
+    newPwConfirm.value = ''
+    alert('비밀번호가 변경됐습니다.')
+  } catch {
+    pwError.value = '변경에 실패했습니다.'
+  }
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: '최고 관리자', MANAGER: '일반 관리자', USER: '일반 사용자'
+}
+
+async function handleRoleChange(id: number, role: string) {
+  try {
+    await adminApi.changeUserRole(id, role)
+    const u = usersStore.users.find(u => u.id === id)
+    if (u) u.role = role as any
+    if (selectedUser.value?.id === id) selectedUser.value = { ...selectedUser.value, role: role as any }
+  } catch {
+    alert('역할 변경에 실패했습니다.')
+  }
+}
+
 function handleApprove(id: number) {
   usersStore.approve(id)
+  if (selectedUser.value?.id === id) selectedUser.value = null
 }
 function handleReject(id: number) {
-  if (confirm('가입을 거절하시겠습니까?')) usersStore.reject(id)
+  if (confirm('가입을 거절하시겠습니까?')) {
+    usersStore.reject(id)
+    if (selectedUser.value?.id === id) selectedUser.value = null
+  }
 }
 function goToUserSchedules(userId: number, name: string) {
   router.push({ path: '/admin/schedules', query: { userId: String(userId), name } })
@@ -198,12 +303,19 @@ function avatarColor(name: string): string {
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${yyyy}.${mm}.${dd} ${hh}:${mi}:${ss}`
 }
 
-onMounted(() => {
-  usersStore.fetchAll()
-  scheduleStore.fetchAll()
+onMounted(async () => {
+  await usersStore.fetchAll()
+  const res = await adminApi.getAllSchedules()
+  totalScheduleCount.value = res.data.length
 })
 
 function handleLogout() {
@@ -235,13 +347,22 @@ function handleLogout() {
   cursor: pointer; transition: border-color 0.2s, transform 0.2s;
 }
 .theme-dot-btn.active { border-color: #fff; transform: scale(1.25); }
-.logout-btn {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 12px; color: rgba(255,255,255,0.85);
-  padding: 4px 8px; border-radius: 12px;
+.my-schedule-btn {
+  font-size: 12px; color: #fff;
+  padding: 6px 10px; border-radius: 12px;
   background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  cursor: pointer; font-weight: 600;
 }
-.logout-icon { font-size: 14px; }
+.logout-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #fff;
+  padding: 6px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  font-weight: 600; cursor: pointer;
+}
+.logout-label { font-size: 12px; }
 
 .admin-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -255,7 +376,9 @@ function handleLogout() {
   text-align: center;
   box-shadow: var(--shadow-card);
   display: flex; flex-direction: column; gap: 4px;
+  cursor: pointer; transition: transform 0.1s;
 }
+.stat-card:active { transform: scale(0.97); }
 .stat-card.highlight {
   border-color: var(--color-primary);
   background: var(--color-primary-light);
@@ -300,9 +423,10 @@ function handleLogout() {
   border-radius: var(--radius-card);
   border: 1px solid var(--color-separator);
   box-shadow: var(--shadow-card);
-  gap: 10px;
+  gap: 10px; cursor: pointer;
 }
 .user-card.pending { border-left: 3px solid var(--color-primary); }
+.card-arrow { font-size: 18px; color: var(--color-text-secondary); }
 
 .user-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .user-avatar {
@@ -334,12 +458,12 @@ function handleLogout() {
 .btn-approve {
   padding: 7px 14px; border-radius: 8px;
   background: var(--color-primary); color: var(--color-on-primary);
-  font-size: 13px; font-weight: 700;
+  font-size: 13px; font-weight: 700; cursor: pointer;
 }
 .btn-reject {
   padding: 7px 14px; border-radius: 8px;
   background: #FFEBEE; color: #C62828;
-  font-size: 13px; font-weight: 600;
+  font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .btn-sm {
   padding: 5px 10px; border-radius: 7px;
@@ -354,15 +478,79 @@ function handleLogout() {
   font-size: 14px; color: var(--color-text-secondary);
 }
 
-/* 전체 일정 버튼 */
-.btn-all-schedules {
-  width: 100%; padding: 16px;
-  background: var(--color-card);
-  border: 1.5px solid var(--color-primary);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 15px; font-weight: 700; color: var(--color-primary);
-  cursor: pointer;
+/* 모달 */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: flex-end;
 }
-.btn-all-schedules .arrow { font-size: 20px; }
+.modal-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: var(--color-card); border-radius: 20px 20px 0 0;
+  padding: 12px 20px 40px;
+  max-height: 85vh; overflow-y: auto;
+}
+.modal-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--color-separator); margin: 0 auto 14px;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-header h3 { font-size: 16px; font-weight: 700; }
+.modal-close { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; }
+
+.user-profile {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--color-separator);
+  margin-bottom: 12px;
+}
+.profile-avatar {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 22px; font-weight: 700; flex-shrink: 0;
+}
+.profile-info { display: flex; flex-direction: column; gap: 4px; }
+.profile-name { font-size: 17px; font-weight: 700; }
+.profile-id { font-size: 13px; color: var(--color-text-secondary); }
+
+.profile-detail {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 14px;
+}
+.detail-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--color-text);
+}
+.detail-label { color: var(--color-text-secondary); }
+.role-select {
+  font-size: 13px; padding: 3px 8px; border-radius: 6px;
+  border: 1px solid var(--color-separator);
+  background: var(--color-input-bg); color: var(--color-text);
+}
+.label-optional { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
+
+.modal-actions-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 12px 0; border-top: 1px solid var(--color-separator);
+  border-bottom: 1px solid var(--color-separator);
+  margin-bottom: 16px;
+}
+
+/* 비밀번호 변경 */
+.pw-section { display: flex; flex-direction: column; gap: 10px; }
+.pw-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+.pw-input {
+  padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--color-input-border);
+  background: var(--color-input-bg);
+  color: var(--color-text); font-size: 14px; outline: none;
+}
+.pw-input:focus { border-color: var(--color-primary); }
+.pw-error { font-size: 12px; color: #F44336; }
+.btn-pw-save {
+  padding: 10px; border-radius: 10px;
+  background: var(--color-primary); color: var(--color-on-primary);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
 </style>

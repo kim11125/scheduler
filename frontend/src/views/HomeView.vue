@@ -2,7 +2,10 @@
   <div class="app-shell home">
     <!-- ── 헤더 ── -->
     <header class="app-header">
-      <span class="app-title">📅 스케줄</span>
+      <div class="header-left">
+        <button v-if="isAdminUser" class="back-to-admin" @click="router.push('/admin')">‹ 관리</button>
+        <span class="app-title">📅 스케줄</span>
+      </div>
       <div class="header-right">
         <!-- 테마 전환 -->
         <div class="theme-switcher">
@@ -16,10 +19,10 @@
             @click="themeStore.setTheme(t.key)"
           />
         </div>
-        <!-- 로그아웃 -->
-        <button class="logout-btn" @click="handleLogout" title="로그아웃">
+        <!-- 프로필 버튼 -->
+        <button class="profile-btn" @click="profileOpen = true">
+          <span class="profile-avatar-sm">{{ authStore.user?.name?.[0] }}</span>
           <span>{{ authStore.user?.name }}</span>
-          <span class="logout-icon">&#8617;</span>
         </button>
       </div>
     </header>
@@ -93,6 +96,7 @@
               </span>
             </div>
             <span class="card-title">{{ s.title }}</span>
+            <span v-if="s.endDate && s.endDate !== s.date" class="card-memo">~ {{ s.endDate }}</span>
             <span v-if="s.memo" class="card-memo">{{ s.memo }}</span>
           </div>
           <span class="card-arrow">&#8250;</span>
@@ -109,6 +113,40 @@
       <span class="fab-icon">+</span>
     </button>
 
+    <!-- ── 프로필 모달 ── -->
+    <Teleport to="body">
+      <div class="modal-overlay" v-if="profileOpen" @click.self="profileOpen = false">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-header">
+            <h3>내 정보</h3>
+            <button class="modal-close" @click="profileOpen = false">✕</button>
+          </div>
+          <div class="user-profile-row">
+            <div class="profile-avatar-lg" :style="{ background: '#1976D2' }">
+              {{ authStore.user?.name?.[0] }}
+            </div>
+            <div class="profile-meta">
+              <span class="profile-name">{{ authStore.user?.name }}</span>
+              <span class="profile-id">@{{ authStore.user?.username }}</span>
+            </div>
+          </div>
+
+          <div class="pw-section">
+            <h4 class="pw-title">비밀번호 변경</h4>
+            <input v-model="currentPw" type="password" class="pw-input" placeholder="현재 비밀번호" />
+            <input v-model="newPw" type="password" class="pw-input" placeholder="새 비밀번호" />
+            <input v-model="newPwConfirm" type="password" class="pw-input" placeholder="새 비밀번호 확인" />
+            <p v-if="pwError" class="pw-error">{{ pwError }}</p>
+            <p v-if="pwSuccess" class="pw-success">비밀번호가 변경됐습니다.</p>
+            <button class="btn-pw-save" @click="handlePwChange">변경</button>
+          </div>
+
+          <button class="btn-logout-full" @click="handleLogout">로그아웃</button>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- ── 일정 추가/수정 모달 ── -->
     <Teleport to="body">
       <div class="modal-overlay" v-if="modalOpen" @click.self="closeModal">
@@ -122,10 +160,23 @@
 
           <!-- Form -->
           <form class="modal-form" @submit.prevent="handleSave">
+            <!-- 관리자: 대상 사용자 선택 -->
+            <div class="form-field" v-if="authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'">
+              <label class="form-label">대상 사용자</label>
+              <select v-model="formData.targetUserId" class="form-input">
+                <option :value="null">내 일정</option>
+                <option v-for="u in adminUsers" :key="u.id" :value="u.id">{{ u.name }} (@{{ u.username }})</option>
+              </select>
+            </div>
+
             <!-- 날짜 -->
             <div class="form-field">
-              <label class="form-label">날짜</label>
+              <label class="form-label">시작일</label>
               <input v-model="formData.date" type="date" class="form-input" required />
+            </div>
+            <div class="form-field">
+              <label class="form-label">종료일 <span class="label-optional">(선택)</span></label>
+              <input v-model="formData.endDate" type="date" class="form-input" :min="formData.date" />
             </div>
 
             <!-- 제목 -->
@@ -202,6 +253,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useScheduleStore } from '@/stores/schedule'
 import { useCalendar } from '@/composables/useCalendar'
+import { userApi } from '@/api/user'
+import { adminApi } from '@/api/admin'
 import type { Schedule, Category, ThemeKey } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 
@@ -209,6 +262,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const scheduleStore = useScheduleStore()
+
+const isAdminUser = computed(() =>
+  authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'
+)
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 const themes: { key: ThemeKey; color: string; label: string }[] = [
@@ -264,10 +321,16 @@ const BASEBALL_TYPES = [{ value: 'HOME', label: '홈' }, { value: 'AWAY', label:
 
 function handleDayClick(cell: { date: string; isCurrentMonth: boolean }) {
   if (!cell.isCurrentMonth || !cell.date) return
-  if (selectedDate.value === cell.date) {
+  const hasSchedules = scheduleStore.getByDate(cell.date).length > 0
+  if (!hasSchedules) {
+    // 일정 없으면 바로 추가 모달
+    selectedDate.value = cell.date
+    openAddModal()
+  } else if (selectedDate.value === cell.date) {
     // 같은 날짜 재클릭 → 추가 모달
     openAddModal()
   } else {
+    // 다른 날짜 → 목록만 보여주기
     selectedDate.value = cell.date
   }
 }
@@ -293,7 +356,9 @@ const formData = reactive({
   category: '' as Category | '',
   baseballType: null as 'HOME' | 'AWAY' | null,
   date: '',
+  endDate: '',
   memo: '',
+  targetUserId: null as number | null,
 })
 const formErrors = reactive<Record<string, string>>({})
 
@@ -302,7 +367,9 @@ function resetForm() {
   formData.category = ''
   formData.baseballType = null
   formData.date = selectedDate.value || todayStr
+  formData.endDate = ''
   formData.memo = ''
+  formData.targetUserId = null
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
 }
 
@@ -319,7 +386,9 @@ function openEditModal(s: Schedule) {
   formData.category = s.category
   formData.baseballType = s.baseballType
   formData.date = s.date
+  formData.endDate = s.endDate || ''
   formData.memo = s.memo ?? ''
+  formData.targetUserId = null
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
   modalOpen.value = true
 }
@@ -362,8 +431,39 @@ async function handleDelete() {
   }
 }
 
-onMounted(() => {
+// 프로필 모달
+const profileOpen = ref(false)
+const currentPw = ref('')
+const newPw = ref('')
+const newPwConfirm = ref('')
+const pwError = ref('')
+const pwSuccess = ref(false)
+
+async function handlePwChange() {
+  pwError.value = ''
+  pwSuccess.value = false
+  if (!currentPw.value) { pwError.value = '현재 비밀번호를 입력하세요.'; return }
+  if (newPw.value.length < 6) { pwError.value = '6자 이상 입력하세요.'; return }
+  if (newPw.value !== newPwConfirm.value) { pwError.value = '비밀번호가 일치하지 않습니다.'; return }
+  try {
+    await userApi.changePassword(currentPw.value, newPw.value)
+    currentPw.value = ''; newPw.value = ''; newPwConfirm.value = ''
+    pwSuccess.value = true
+  } catch (e: any) {
+    pwError.value = e.response?.data?.message || '변경에 실패했습니다.'
+  }
+}
+
+// 관리자용 유저 목록
+const adminUsers = ref<{id: number; name: string; username: string}[]>([])
+
+onMounted(async () => {
   scheduleStore.fetchAll()
+  const role = authStore.user?.role
+  if (role === 'ADMIN' || role === 'MANAGER') {
+    const res = await adminApi.getUsers()
+    adminUsers.value = res.data.filter((u: any) => u.status === 'ACTIVE' && u.role === 'USER')
+  }
 })
 
 function handleLogout() {
@@ -392,7 +492,14 @@ function handleLogout() {
   color: #fff;
   flex-shrink: 0;
 }
+.header-left { display: flex; align-items: center; gap: 8px; }
 .app-title { font-size: 17px; font-weight: 700; }
+.back-to-admin {
+  font-size: 13px; color: rgba(255,255,255,0.85);
+  padding: 4px 8px; border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+}
 .header-right { display: flex; align-items: center; gap: 12px; }
 
 .theme-switcher { display: flex; gap: 6px; align-items: center; }
@@ -409,13 +516,78 @@ function handleLogout() {
   transform: scale(1.25);
 }
 
-.logout-btn {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 12px; color: rgba(255,255,255,0.85);
-  padding: 4px 8px; border-radius: 12px;
-  background: rgba(255,255,255,0.15);
+.profile-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #fff;
+  padding: 4px 10px; border-radius: 16px;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  font-weight: 600; cursor: pointer;
 }
-.logout-icon { font-size: 14px; }
+.profile-btn:active { opacity: 0.8; }
+.profile-avatar-sm {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+
+/* 프로필 모달 */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: flex-end;
+}
+.modal-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: var(--color-card); border-radius: 20px 20px 0 0;
+  padding: 12px 20px 40px; max-height: 85vh; overflow-y: auto;
+}
+.modal-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--color-separator); margin: 0 auto 14px;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-header h3 { font-size: 16px; font-weight: 700; }
+.modal-close { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; }
+
+.user-profile-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0 16px; border-bottom: 1px solid var(--color-separator);
+  margin-bottom: 16px;
+}
+.profile-avatar-lg {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 22px; font-weight: 700;
+}
+.profile-meta { display: flex; flex-direction: column; gap: 4px; }
+.profile-name { font-size: 17px; font-weight: 700; }
+.profile-id { font-size: 13px; color: var(--color-text-secondary); }
+
+.pw-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.pw-title { font-size: 14px; font-weight: 700; }
+.pw-input {
+  padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--color-input-border);
+  background: var(--color-input-bg);
+  color: var(--color-text); font-size: 14px; outline: none;
+}
+.pw-input:focus { border-color: var(--color-primary); }
+.pw-error { font-size: 12px; color: #F44336; }
+.pw-success { font-size: 12px; color: #2E7D32; }
+.btn-pw-save {
+  padding: 10px; border-radius: 10px;
+  background: var(--color-primary); color: var(--color-on-primary);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.btn-logout-full {
+  width: 100%; padding: 12px; border-radius: 10px;
+  background: #FFEBEE; color: #C62828;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
 
 /* ── Month nav ── */
 .month-nav {

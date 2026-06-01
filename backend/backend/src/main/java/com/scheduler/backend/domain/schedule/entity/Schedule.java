@@ -41,6 +41,9 @@ public class Schedule {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
     @Column(columnDefinition = "TEXT")
     private String memo;
 

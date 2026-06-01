@@ -30,9 +30,8 @@ public class User {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Role role;
+    private String role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

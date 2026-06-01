@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +19,12 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
+
+    private boolean isAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+            || auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MANAGER"));
+    }
 
     @GetMapping
     public ResponseEntity<List<ScheduleResponse>> getMySchedules(@AuthenticationPrincipal Long userId) {
@@ -33,13 +41,13 @@ public class ScheduleController {
     public ResponseEntity<ScheduleResponse> update(@AuthenticationPrincipal Long userId,
                                                     @PathVariable Long id,
                                                     @Valid @RequestBody ScheduleRequest req) {
-        return ResponseEntity.ok(scheduleService.update(userId, id, req));
+        return ResponseEntity.ok(scheduleService.update(userId, id, req, isAdmin()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal Long userId,
                                        @PathVariable Long id) {
-        scheduleService.delete(userId, id);
+        scheduleService.delete(userId, id, isAdmin());
         return ResponseEntity.ok().build();
     }
 }

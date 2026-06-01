@@ -50,4 +50,11 @@ public class AdminService {
         return scheduleRepository.findByUserIdAndNotDeleted(userId)
                 .stream().map(ScheduleResponse::new).toList();
     }
+
+    @Transactional
+    public void deleteSchedule(Long scheduleId) {
+        var schedule = scheduleRepository.findByIdAndDeletedAtIsNull(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
+        schedule.setDeletedAt(java.time.LocalDateTime.now());
+    }
 }

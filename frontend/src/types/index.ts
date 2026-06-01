@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'USER'
+export type UserRole = 'ADMIN' | 'MANAGER' | 'USER'
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'DISABLED'
 export type Category = 'BASEBALL' | 'BASKETBALL' | 'SOCCER' | 'WOMENS_VOLLEYBALL' | 'MENS_VOLLEYBALL' | 'ETC'
 export type BaseballType = 'HOME' | 'AWAY'
@@ -15,10 +15,12 @@ export interface User {
 export interface Schedule {
   id: number
   userId: number
+  userName?: string
   title: string
   category: Category
   baseballType: BaseballType | null
   date: string
+  endDate?: string | null
   memo: string | null
   createdAt: string
   updatedAt: string
@@ -29,7 +31,9 @@ export interface ScheduleFormData {
   category: Category | ''
   baseballType: BaseballType | null
   date: string
+  endDate?: string
   memo: string
+  targetUserId?: number | null
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

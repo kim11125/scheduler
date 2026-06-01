@@ -4,9 +4,13 @@ import com.scheduler.backend.domain.admin.dto.UserResponse;
 import com.scheduler.backend.domain.admin.service.AdminService;
 import com.scheduler.backend.domain.schedule.dto.ScheduleResponse;
 import com.scheduler.backend.domain.user.entity.UserStatus;
+import com.scheduler.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.util.List;
 
@@ -16,6 +20,8 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -63,8 +69,33 @@ public class AdminController {
 
     @DeleteMapping("/schedules/{id}")
     public ResponseEntity<Void> deleteSchedule(@PathVariable Long id) {
-        // admin도 soft delete
-        adminService.getAllSchedules(); // placeholder - 아래 별도 구현 가능
+        adminService.deleteSchedule(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // 관리자가 사용자 비밀번호 변경
+    @PutMapping("/users/{id}/password")
+    public ResponseEntity<?> changeUserPassword(@PathVariable Long id,
+                                                 @RequestBody Map<String, String> body) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.setPassword(passwordEncoder.encode(body.get("newPassword")));
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
+    // 역할 변경 (ADMIN만 가능 - SecurityConfig에서 제한)
+    @PutMapping("/users/{id}/role")
+    public ResponseEntity<?> changeRole(@PathVariable Long id,
+                                        @RequestBody Map<String, String> body) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        String newRole = body.get("role"); // ADMIN, MANAGER, USER
+        if (!List.of("ADMIN", "MANAGER", "USER").contains(newRole)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "유효하지 않은 역할입니다."));
+        }
+        user.setRole(newRole);
+        userRepository.save(user);
         return ResponseEntity.ok().build();
     }
 }

@@ -2,7 +2,7 @@
 INSERT INTO users (username, password, name, role, status)
 VALUES (
     'admin',
-    '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBpwTTyGyR.pOm',
+    '$2b$10$HR8tD6AKhc2/Z6U67FpdBe05uDgsQilmjvV6ynl7ZG46o/VCbNz7i',
     '관리자',
     'ADMIN',
     'ACTIVE'
