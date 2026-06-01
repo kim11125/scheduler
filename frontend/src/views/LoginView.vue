@@ -47,11 +47,7 @@
         <RouterLink to="/register">회원가입 신청</RouterLink>
       </p>
 
-      <!-- Dev hint -->
-      <div class="dev-hint">
-        <p>관리자: admin / admin1234</p>
-        <p>일반 사용자는 회원가입 후 관리자 승인 필요</p>
-      </div>
+      <p class="register-hint">회원가입 신청 후 관리자 승인이 필요합니다.</p>
     </div>
   </div>
 </template>
@@ -182,13 +178,9 @@ async function handleLogin() {
   font-weight: 600;
   text-decoration: none;
 }
-.dev-hint {
-  background: var(--color-surface);
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 12px;
+.register-hint {
+  text-align: center;
+  font-size: 13px;
   color: var(--color-text-secondary);
-  line-height: 1.8;
-  border: 1px solid var(--color-separator);
 }
 </style>
