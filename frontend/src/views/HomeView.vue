@@ -19,11 +19,9 @@
             @click="themeStore.setTheme(t.key)"
           />
         </div>
-        <!-- 프로필 버튼 -->
-        <button class="profile-btn" @click="profileOpen = true">
-          <span class="profile-avatar-sm">{{ authStore.user?.name?.[0] }}</span>
-          <span>{{ authStore.user?.name }}</span>
-        </button>
+        <!-- 내 정보 / 로그아웃 -->
+        <button class="header-btn" @click="profileOpen = true">내 정보</button>
+        <button class="header-btn header-btn-logout" @click="handleLogout">로그아웃</button>
       </div>
     </header>
 
@@ -116,33 +114,34 @@
     <!-- ── 프로필 모달 ── -->
     <Teleport to="body">
       <div class="modal-overlay" v-if="profileOpen" @click.self="profileOpen = false">
-        <div class="modal-sheet">
+        <div class="modal-sheet profile-modal-sheet">
           <div class="modal-handle"></div>
-          <div class="modal-header">
-            <h3>내 정보</h3>
-            <button class="modal-close" @click="profileOpen = false">✕</button>
-          </div>
-          <div class="user-profile-row">
-            <div class="profile-avatar-lg" :style="{ background: '#1976D2' }">
-              {{ authStore.user?.name?.[0] }}
+          <div class="profile-modal-inner">
+            <div class="modal-header">
+              <h3>내 정보</h3>
+              <button class="modal-close" @click="profileOpen = false">✕</button>
             </div>
-            <div class="profile-meta">
-              <span class="profile-name">{{ authStore.user?.name }}</span>
-              <span class="profile-id">@{{ authStore.user?.username }}</span>
+            <div class="user-profile-row">
+              <div class="profile-avatar-lg" :style="{ background: '#1976D2' }">
+                {{ authStore.user?.name?.[0] }}
+              </div>
+              <div class="profile-meta">
+                <span class="profile-name">{{ authStore.user?.name }}</span>
+                <span class="profile-id">@{{ authStore.user?.username }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="pw-section">
-            <h4 class="pw-title">비밀번호 변경</h4>
-            <input v-model="currentPw" type="password" class="pw-input" placeholder="현재 비밀번호" />
-            <input v-model="newPw" type="password" class="pw-input" placeholder="새 비밀번호" />
-            <input v-model="newPwConfirm" type="password" class="pw-input" placeholder="새 비밀번호 확인" />
-            <p v-if="pwError" class="pw-error">{{ pwError }}</p>
-            <p v-if="pwSuccess" class="pw-success">비밀번호가 변경됐습니다.</p>
-            <button class="btn-pw-save" @click="handlePwChange">변경</button>
-          </div>
+            <div class="pw-section">
+              <h4 class="pw-title">비밀번호 변경</h4>
+              <input v-model="currentPw" type="password" class="pw-input" placeholder="현재 비밀번호" />
+              <input v-model="newPw" type="password" class="pw-input" placeholder="새 비밀번호" />
+              <input v-model="newPwConfirm" type="password" class="pw-input" placeholder="새 비밀번호 확인" />
+              <p v-if="pwError" class="pw-error">{{ pwError }}</p>
+              <p v-if="pwSuccess" class="pw-success">비밀번호가 변경됐습니다.</p>
+              <button class="btn-pw-save" @click="handlePwChange">변경</button>
+            </div>
 
-          <button class="btn-logout-full" @click="handleLogout">로그아웃</button>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -516,20 +515,18 @@ function handleLogout() {
   transform: scale(1.25);
 }
 
-.profile-btn {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: #fff;
-  padding: 4px 10px; border-radius: 16px;
-  background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.4);
-  font-weight: 600; cursor: pointer;
+.header-btn {
+  font-size: 12px; font-weight: 600; color: #fff;
+  padding: 5px 11px; border-radius: 10px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  cursor: pointer;
 }
-.profile-btn:active { opacity: 0.8; }
-.profile-avatar-sm {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(255,255,255,0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700;
+.header-btn:active { opacity: 0.75; }
+.header-btn-logout {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
 }
 
 /* 프로필 모달 */
@@ -540,52 +537,49 @@ function handleLogout() {
 .modal-sheet {
   width: 100%; max-width: 430px; margin: 0 auto;
   background: var(--color-card); border-radius: 20px 20px 0 0;
-  padding: 12px 20px 40px; max-height: 85vh; overflow-y: auto;
+  padding: 12px 28px 48px; max-height: 85vh; overflow-y: auto;
 }
+.profile-modal-sheet { padding: 12px 0 48px; }
+.profile-modal-inner { padding: 0 32px; }
 .modal-handle {
-  width: 40px; height: 4px; border-radius: 2px;
-  background: var(--color-separator); margin: 0 auto 14px;
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--color-separator); margin: 0 auto 18px;
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 .modal-header h3 { font-size: 16px; font-weight: 700; }
 .modal-close { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; }
 
 .user-profile-row {
-  display: flex; align-items: center; gap: 14px;
-  padding: 12px 0 16px; border-bottom: 1px solid var(--color-separator);
-  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 0 20px; border-bottom: 1px solid var(--color-separator);
+  margin-bottom: 24px;
 }
 .profile-avatar-lg {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 54px; height: 54px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 22px; font-weight: 700;
+  color: #fff; font-size: 22px; font-weight: 700; flex-shrink: 0;
 }
 .profile-meta { display: flex; flex-direction: column; gap: 4px; }
 .profile-name { font-size: 17px; font-weight: 700; }
 .profile-id { font-size: 13px; color: var(--color-text-secondary); }
 
-.pw-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.pw-title { font-size: 14px; font-weight: 700; }
+.pw-section { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.pw-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
 .pw-input {
-  padding: 10px 12px; border-radius: 10px;
+  padding: 12px 14px; border-radius: 10px;
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   color: var(--color-text); font-size: 14px; outline: none;
 }
 .pw-input:focus { border-color: var(--color-primary); }
-.pw-error { font-size: 12px; color: #F44336; }
-.pw-success { font-size: 12px; color: #2E7D32; }
+.pw-error { font-size: 12px; color: #F44336; margin-top: -4px; }
+.pw-success { font-size: 12px; color: #2E7D32; margin-top: -4px; }
 .btn-pw-save {
-  padding: 10px; border-radius: 10px;
+  padding: 13px; border-radius: 10px; margin-top: 4px;
   background: var(--color-primary); color: var(--color-on-primary);
-  font-size: 14px; font-weight: 700; cursor: pointer;
-}
-.btn-logout-full {
-  width: 100%; padding: 12px; border-radius: 10px;
-  background: #FFEBEE; color: #C62828;
   font-size: 14px; font-weight: 700; cursor: pointer;
 }
 
