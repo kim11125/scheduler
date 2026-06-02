@@ -184,7 +184,7 @@
             </Transition>
             <div class="form-field">
               <label class="form-label">메모</label>
-              <textarea v-model="formData.memo" class="form-input form-textarea" rows="3" maxlength="2000" />
+              <textarea v-model="formData.memo" class="form-input form-textarea" rows="3" maxlength="500" />
             </div>
             <div class="modal-actions">
               <button type="button" class="btn-delete" @click="handleDelete">삭제</button>
@@ -428,8 +428,14 @@ function formatDay(dateStr: string): string {
   padding: 2px 7px; border-radius: 8px;
   border: 1px solid var(--color-separator);
 }
-.sched-title { font-size: 14px; font-weight: 600; color: var(--color-text); }
-.sched-memo  { font-size: 12px; color: var(--color-text-secondary); }
+.sched-title {
+  font-size: 14px; font-weight: 600; color: var(--color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.sched-memo  {
+  font-size: 12px; color: var(--color-text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
 .sched-arrow { font-size: 18px; color: var(--color-text-secondary); }
 
 .empty-msg {

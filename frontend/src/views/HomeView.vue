@@ -227,7 +227,7 @@
             <!-- 메모 -->
             <div class="form-field">
               <label class="form-label">메모 <span class="optional">(선택)</span></label>
-              <textarea v-model="formData.memo" class="form-input form-textarea" placeholder="메모를 입력하세요" rows="3" maxlength="2000" />
+              <textarea v-model="formData.memo" class="form-input form-textarea" placeholder="메모를 입력하세요" rows="3" maxlength="500" />
             </div>
 
             <!-- 버튼 -->
@@ -753,13 +753,12 @@ function handleLogout() {
   border-radius: 10px;
 }
 .card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 14px; font-weight: 600; color: var(--color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
 .card-memo {
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  font-size: 12px; color: var(--color-text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
 .card-arrow {
   font-size: 18px;
