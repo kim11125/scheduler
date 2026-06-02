@@ -40,7 +40,8 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
-                .requestMatchers("/api/admin/users/*/role").hasRole("ADMIN") // 역할 변경은 ADMIN만
+                .requestMatchers("/api/admin/users/*/role").hasRole("ADMIN")
+                .requestMatchers("/api/admin/logs/**").hasRole("ADMIN") // 로그 조회는 ADMIN만
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "MANAGER")
                 .anyRequest().authenticated()
             )

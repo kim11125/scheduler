@@ -117,6 +117,25 @@
         </div>
       </section>
 
+      <!-- 로그인 로그 (ADMIN만) -->
+      <section class="section" v-if="authStore.user?.role === 'ADMIN'">
+        <div class="section-header">
+          <h2 class="section-title">로그인 로그</h2>
+          <button class="filter-tab active" @click="fetchLogs">새로고침</button>
+        </div>
+        <div class="log-list">
+          <div v-if="logs.length === 0" class="empty-msg">로그가 없습니다.</div>
+          <div v-for="log in logs" :key="log.id" class="log-item">
+            <span class="log-action" :class="log.action === 'LOGIN' ? 'login' : 'logout'">
+              {{ log.action === 'LOGIN' ? '로그인' : '로그아웃' }}
+            </span>
+            <span class="log-user">{{ log.username }}</span>
+            <span class="log-ip">{{ log.ipAddress || '-' }}</span>
+            <span class="log-time">{{ formatLogDate(log.createdAt) }}</span>
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <!-- 사용자 상세 모달 -->
@@ -312,10 +331,24 @@ function formatDate(iso: string): string {
   return `${yyyy}.${mm}.${dd} ${hh}:${mi}:${ss}`
 }
 
+const logs = ref<any[]>([])
+
+async function fetchLogs() {
+  if (authStore.user?.role !== 'ADMIN') return
+  const res = await adminApi.getLogs(0, 100)
+  logs.value = res.data.content
+}
+
+function formatLogDate(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
+}
+
 onMounted(async () => {
   await usersStore.fetchAll()
   const res = await adminApi.getAllSchedules()
   totalScheduleCount.value = res.data.length
+  await fetchLogs()
 })
 
 function handleLogout() {
@@ -529,6 +562,25 @@ function handleLogout() {
   background: var(--color-input-bg); color: var(--color-text);
 }
 .label-optional { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
+
+/* 로그 */
+.log-list { display: flex; flex-direction: column; gap: 6px; }
+.log-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--color-card);
+  border-radius: 10px;
+  border: 1px solid var(--color-separator);
+  font-size: 12px;
+}
+.log-action {
+  font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 11px; flex-shrink: 0;
+}
+.log-action.login  { background: #E8F5E9; color: #2E7D32; }
+.log-action.logout { background: #FFF3E0; color: #E65100; }
+.log-user { font-weight: 600; color: var(--color-text); flex: 1; }
+.log-ip   { color: var(--color-text-secondary); font-size: 11px; }
+.log-time { color: var(--color-text-secondary); font-size: 11px; flex-shrink: 0; }
 
 .modal-actions-row {
   display: flex; gap: 8px; flex-wrap: wrap;

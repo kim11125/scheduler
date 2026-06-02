@@ -3,6 +3,7 @@ package com.scheduler.backend.domain.auth.service;
 import com.scheduler.backend.domain.auth.dto.LoginRequest;
 import com.scheduler.backend.domain.auth.dto.LoginResponse;
 import com.scheduler.backend.domain.auth.dto.RegisterRequest;
+import com.scheduler.backend.domain.log.service.LoginLogService;
 import com.scheduler.backend.domain.user.entity.User;
 import com.scheduler.backend.domain.user.entity.UserStatus;
 import com.scheduler.backend.domain.user.repository.UserRepository;
@@ -19,6 +20,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final LoginLogService loginLogService;
 
     @Transactional
     public void register(RegisterRequest req) {
@@ -35,8 +37,8 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest req) {
+    @Transactional
+    public LoginResponse login(LoginRequest req, String ip) {
         User user = userRepository.findByUsername(req.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
 
@@ -44,8 +46,15 @@ public class AuthService {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
+        loginLogService.record(user.getId(), user.getUsername(), "LOGIN", ip);
+
         String token = jwtProvider.generate(user.getId(), user.getRole());
         return new LoginResponse(token, user.getId(), user.getName(),
                 user.getRole(), user.getStatus().name());
+    }
+
+    @Transactional
+    public void logout(Long userId, String username, String ip) {
+        loginLogService.record(userId, username, "LOGOUT", ip);
     }
 }
