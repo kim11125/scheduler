@@ -40,10 +40,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout() {
-    try {
-      if (user.value) await authApi.logout(user.value.username)
-    } catch {}
+  function logout() {
+    // 로그아웃 API는 백그라운드로 실행 (기다리지 않음)
+    if (user.value) authApi.logout(user.value.username).catch(() => {})
     user.value = null
     error.value = null
     localStorage.removeItem('token')

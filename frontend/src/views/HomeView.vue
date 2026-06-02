@@ -524,8 +524,8 @@ onMounted(async () => {
   }
 })
 
-async function handleLogout() {
-  await authStore.logout()
+function handleLogout() {
+  authStore.logout()
   router.push('/login')
 }
 </script>
