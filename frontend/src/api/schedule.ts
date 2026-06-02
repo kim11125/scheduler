@@ -18,6 +18,8 @@ export interface SchedulePayload {
 
 export const scheduleApi = {
   getAll: () => client.get('/api/schedules'),
+  getByMonth: (year: number, month: number) =>
+    client.get(`/api/schedules?year=${year}&month=${month}`),
   getMe: () => client.get('/api/schedules/me'),
   getByUser: (userId: number) => client.get(`/api/schedules/users/${userId}`),
   getByTeam: (teamId: number) => client.get(`/api/schedules/teams/${teamId}`),

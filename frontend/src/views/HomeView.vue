@@ -326,10 +326,12 @@ const currentMonth = ref(now.getMonth() + 1)
 function prevMonth() {
   if (currentMonth.value === 1) { currentMonth.value = 12; currentYear.value-- }
   else currentMonth.value--
+  scheduleStore.fetchByMonth(currentYear.value, currentMonth.value)
 }
 function nextMonth() {
   if (currentMonth.value === 12) { currentMonth.value = 1; currentYear.value++ }
   else currentMonth.value++
+  scheduleStore.fetchByMonth(currentYear.value, currentMonth.value)
 }
 
 // ── Calendar ───────────────────────────────────────────────────────────────
@@ -548,7 +550,7 @@ const adminUsers = ref<{id: number; name: string; username: string}[]>([])
 const myTeams = ref<TeamRef[]>([])
 
 onMounted(async () => {
-  scheduleStore.fetchAll()
+  scheduleStore.fetchByMonth(currentYear.value, currentMonth.value)
   loadProfileImage()
   const role = authStore.user?.role
   if (role === 'ADMIN' || role === 'MANAGER') {

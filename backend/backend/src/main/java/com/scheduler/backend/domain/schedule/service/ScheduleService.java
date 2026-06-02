@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,9 +22,16 @@ public class ScheduleService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<ScheduleResponse> getMySchedules(Long userId) {
-        return scheduleRepository.findByUserIdAndNotDeleted(userId)
-                .stream().map(ScheduleResponse::new).toList();
+    public List<ScheduleResponse> getMySchedules(Long userId, Integer year, Integer month) {
+        List<Schedule> list;
+        if (year != null && month != null) {
+            LocalDate start = LocalDate.of(year, month, 1);
+            LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+            list = scheduleRepository.findByUserIdAndDateBetweenAndNotDeleted(userId, start, end);
+        } else {
+            list = scheduleRepository.findByUserIdAndNotDeleted(userId);
+        }
+        return list.stream().map(ScheduleResponse::new).toList();
     }
 
     @Transactional

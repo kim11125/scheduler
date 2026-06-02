@@ -27,8 +27,11 @@ public class ScheduleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ScheduleResponse>> getMySchedules(@AuthenticationPrincipal Long userId) {
-        return ResponseEntity.ok(scheduleService.getMySchedules(userId));
+    public ResponseEntity<List<ScheduleResponse>> getMySchedules(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        return ResponseEntity.ok(scheduleService.getMySchedules(userId, year, month));
     }
 
     @PostMapping

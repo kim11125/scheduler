@@ -11,6 +11,11 @@ export const useScheduleStore = defineStore('schedule', () => {
     schedules.value = res.data
   }
 
+  async function fetchByMonth(year: number, month: number) {
+    const res = await scheduleApi.getByMonth(year, month)
+    schedules.value = res.data
+  }
+
   function getByDate(date: string): Schedule[] {
     return schedules.value
       .filter(s => s.date === date)
@@ -76,5 +81,5 @@ export const useScheduleStore = defineStore('schedule', () => {
     schedules.value = schedules.value.filter(s => s.id !== id)
   }
 
-  return { schedules, fetchAll, getByDate, getByMonth, getDotsByDate, getExtraCount, add, update, remove }
+  return { schedules, fetchAll, fetchByMonth, getByDate, getByMonth, getDotsByDate, getExtraCount, add, update, remove }
 })

@@ -20,6 +20,9 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND YEAR(s.date) = :year AND MONTH(s.date) = :month AND s.deletedAt IS NULL ORDER BY s.date ASC")
     List<Schedule> findByUserIdAndYearMonth(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
 
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.date BETWEEN :start AND :end AND s.deletedAt IS NULL ORDER BY s.date ASC")
+    List<Schedule> findByUserIdAndDateBetweenAndNotDeleted(@Param("userId") Long userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
     @Query("SELECT s FROM Schedule s WHERE s.deletedAt IS NULL ORDER BY s.createdAt DESC")
     List<Schedule> findAllNotDeleted();
 
