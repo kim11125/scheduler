@@ -18,7 +18,6 @@ export const useUsersStore = defineStore('users', () => {
 
   const allUsers = computed(() =>
     users.value
-      .filter(u => u.role !== 'ADMIN')
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   )
 
