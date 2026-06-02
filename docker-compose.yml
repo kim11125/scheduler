@@ -7,6 +7,7 @@ services:
       POSTGRES_DB: scheduler
       POSTGRES_USER: scheduler
       POSTGRES_PASSWORD: scheduler1234
+      TZ: Asia/Seoul
     ports:
       - "5432:5432"
     volumes:
@@ -29,6 +30,7 @@ services:
       DB_USER: scheduler
       DB_PASSWORD: scheduler1234
       JWT_SECRET: thisIsAVeryLongSecretKeyForSchedulerAppPleaseChangeInProduction123!
+      TZ: Asia/Seoul
     ports:
       - "8080:8080"
     depends_on:
