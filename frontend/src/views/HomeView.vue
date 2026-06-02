@@ -20,7 +20,10 @@
           />
         </div>
         <!-- 내 정보 / 로그아웃 -->
-        <button class="header-btn" @click="router.push('/my-profile')">내 정보</button>
+        <button class="header-profile-btn" @click="profileOpen = true">
+          <img v-if="profileImageUrl" :src="profileImageUrl" class="header-profile-img" alt="프로필" />
+          <span v-else class="header-profile-initial">{{ authStore.user?.name?.[0] }}</span>
+        </button>
         <button class="header-btn header-btn-logout" @click="handleLogout">로그아웃</button>
       </div>
     </header>
@@ -124,14 +127,20 @@
               <button class="modal-close" @click="profileOpen = false">✕</button>
             </div>
             <div class="user-profile-row">
-              <div class="profile-avatar-lg" :style="{ background: '#1976D2' }">
-                {{ authStore.user?.name?.[0] }}
+              <div class="profile-avatar-wrap" @click="triggerImageUpload">
+                <img v-if="profileImageUrl" :src="profileImageUrl" class="profile-avatar-img" alt="프로필" />
+                <div v-else class="profile-avatar-lg" :style="{ background: '#1976D2' }">
+                  {{ authStore.user?.name?.[0] }}
+                </div>
+                <div class="profile-avatar-overlay">📷</div>
               </div>
               <div class="profile-meta">
                 <span class="profile-name">{{ authStore.user?.name }}</span>
                 <span class="profile-id">@{{ authStore.user?.username }}</span>
+                <span class="profile-img-hint">사진을 클릭해 변경</span>
               </div>
             </div>
+            <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp" class="hidden-input" @change="handleImageUpload" />
 
             <div class="pw-section">
               <h4 class="pw-title">비밀번호 변경</h4>
@@ -489,6 +498,35 @@ const newPwConfirm = ref('')
 const pwError = ref('')
 const pwSuccess = ref(false)
 
+// 프로필 이미지
+const profileImageUrl = ref<string | null>(null)
+const imageInputRef = ref<HTMLInputElement | null>(null)
+
+async function loadProfileImage() {
+  try {
+    const res = await userApi.getMe()
+    profileImageUrl.value = res.data.profileImageUrl || null
+  } catch {}
+}
+
+function triggerImageUpload() {
+  imageInputRef.value?.click()
+}
+
+async function handleImageUpload(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  try {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await userApi.uploadMyProfileImage(file)
+    profileImageUrl.value = res.data.profileImageUrl
+  } catch (err: any) {
+    alert(err.response?.data?.message || '이미지 업로드에 실패했습니다.')
+  }
+  if (imageInputRef.value) imageInputRef.value.value = ''
+}
+
 async function handlePwChange() {
   pwError.value = ''
   pwSuccess.value = false
@@ -511,6 +549,7 @@ const myTeams = ref<TeamRef[]>([])
 
 onMounted(async () => {
   scheduleStore.fetchAll()
+  loadProfileImage()
   const role = authStore.user?.role
   if (role === 'ADMIN' || role === 'MANAGER') {
     const res = await adminApi.getUsers()
@@ -574,6 +613,21 @@ function handleLogout() {
   transform: scale(1.25);
 }
 
+.header-profile-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  border: 2px solid rgba(255,255,255,0.5);
+  cursor: pointer; padding: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.header-profile-btn:active { opacity: 0.8; }
+.header-profile-img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.header-profile-initial {
+  font-size: 13px; font-weight: 700; color: #fff;
+}
 .header-btn {
   font-size: 12px; font-weight: 600; color: #fff;
   padding: 5px 11px; border-radius: 10px;
@@ -587,6 +641,21 @@ function handleLogout() {
   border-color: rgba(255,255,255,0.2);
   color: rgba(255,255,255,0.8);
 }
+.hidden-input { display: none; }
+.profile-avatar-wrap {
+  position: relative; width: 54px; height: 54px; cursor: pointer; flex-shrink: 0;
+}
+.profile-avatar-img {
+  width: 54px; height: 54px; border-radius: 50%; object-fit: cover;
+}
+.profile-avatar-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; opacity: 0; transition: opacity 0.2s;
+}
+.profile-avatar-wrap:hover .profile-avatar-overlay { opacity: 1; }
+.profile-img-hint { font-size: 11px; color: var(--color-text-secondary); }
 
 /* 프로필 모달 */
 .modal-overlay {
