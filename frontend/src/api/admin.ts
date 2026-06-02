@@ -40,7 +40,7 @@ export const adminApi = {
   // 사용자 소속 회사 관리
   getUserCompanies: (userId: number) => client.get(`/api/admin/users/${userId}/companies`),
   addUserCompany: (userId: number, companyId: number) =>
-    client.post(`/api/admin/users/${userId}/companies`, { companyId }),
+    client.post(`/api/admin/users/${userId}/companies/${companyId}`),
   setPrimaryUserCompany: (userId: number, companyId: number) =>
     client.patch(`/api/admin/users/${userId}/companies/${companyId}/primary`),
   removeUserCompany: (userId: number, companyId: number) =>
@@ -49,7 +49,7 @@ export const adminApi = {
   // 사용자 소속 팀 관리
   getUserTeams: (userId: number) => client.get(`/api/admin/users/${userId}/teams`),
   addUserTeam: (userId: number, teamId: number) =>
-    client.post(`/api/admin/users/${userId}/teams`, { teamId }),
+    client.post(`/api/admin/users/${userId}/teams/${teamId}`),
   setPrimaryUserTeam: (userId: number, teamId: number) =>
     client.patch(`/api/admin/users/${userId}/teams/${teamId}/primary`),
   removeUserTeam: (userId: number, teamId: number) =>
