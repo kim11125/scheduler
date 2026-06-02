@@ -202,29 +202,23 @@
             <button v-if="selectedUser.status === 'REJECTED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">승인</button>
             <button v-if="selectedUser.status === 'ACTIVE'" class="btn-sm btn-schedule"
               @click="goToUserSchedules(selectedUser.id, selectedUser.name)">일정 보기</button>
-            <button class="btn-sm btn-profile"
-              @click="router.push(`/admin/users/${selectedUser.id}`)">상세 관리</button>
           </div>
 
-          <!-- 소속 회사 -->
+          <!-- 소속 회사 (1:1) -->
           <div class="relation-section">
             <h4 class="relation-title">소속 회사</h4>
-            <div class="relation-chips">
-              <span v-for="uc in userCompanies" :key="uc.companyId" class="relation-chip"
-                :class="{ primary: uc.isPrimary }">
+            <div v-if="userCompanies.length > 0" class="relation-chips">
+              <span v-for="uc in userCompanies" :key="uc.companyId" class="relation-chip primary">
                 {{ uc.companyName }}
-                <span v-if="uc.isPrimary" class="chip-primary-badge">대표</span>
-                <button v-if="!uc.isPrimary" class="chip-action" @click="setPrimaryCompany(uc.companyId)">대표설정</button>
                 <button class="chip-remove" @click="removeCompany(uc.companyId)">✕</button>
               </span>
-              <span v-if="userCompanies.length === 0" class="empty-sm">없음</span>
             </div>
-            <div class="relation-add-row">
+            <div v-else class="relation-add-row">
               <select v-model="addCompanyId" class="relation-select">
                 <option :value="null">회사 선택...</option>
                 <option v-for="c in availableCompanies" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
-              <button class="btn-sm btn-add-rel" :disabled="!addCompanyId" @click="addCompany">추가</button>
+              <button class="btn-sm btn-add-rel" :disabled="!addCompanyId" @click="addCompany">등록</button>
             </div>
           </div>
 
