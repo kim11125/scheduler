@@ -206,6 +206,50 @@
               @click="router.push(`/admin/users/${selectedUser.id}`)">상세 관리</button>
           </div>
 
+          <!-- 소속 회사 -->
+          <div class="relation-section">
+            <h4 class="relation-title">소속 회사</h4>
+            <div class="relation-chips">
+              <span v-for="uc in userCompanies" :key="uc.companyId" class="relation-chip"
+                :class="{ primary: uc.isPrimary }">
+                {{ uc.companyName }}
+                <span v-if="uc.isPrimary" class="chip-primary-badge">대표</span>
+                <button v-if="!uc.isPrimary" class="chip-action" @click="setPrimaryCompany(uc.companyId)">대표설정</button>
+                <button class="chip-remove" @click="removeCompany(uc.companyId)">✕</button>
+              </span>
+              <span v-if="userCompanies.length === 0" class="empty-sm">없음</span>
+            </div>
+            <div class="relation-add-row">
+              <select v-model="addCompanyId" class="relation-select">
+                <option :value="null">회사 선택...</option>
+                <option v-for="c in availableCompanies" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+              <button class="btn-sm btn-add-rel" :disabled="!addCompanyId" @click="addCompany">추가</button>
+            </div>
+          </div>
+
+          <!-- 소속 팀 -->
+          <div class="relation-section">
+            <h4 class="relation-title">소속 팀</h4>
+            <div class="relation-chips">
+              <span v-for="ut in userTeams" :key="ut.teamId" class="relation-chip"
+                :class="{ primary: ut.isPrimary }">
+                {{ ut.teamName }}
+                <span v-if="ut.isPrimary" class="chip-primary-badge">대표</span>
+                <button v-if="!ut.isPrimary" class="chip-action" @click="setPrimaryTeam(ut.teamId)">대표설정</button>
+                <button class="chip-remove" @click="removeTeam(ut.teamId)">✕</button>
+              </span>
+              <span v-if="userTeams.length === 0" class="empty-sm">없음</span>
+            </div>
+            <div class="relation-add-row">
+              <select v-model="addTeamId" class="relation-select">
+                <option :value="null">팀 선택...</option>
+                <option v-for="t in availableTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+              </select>
+              <button class="btn-sm btn-add-rel" :disabled="!addTeamId" @click="addTeam">추가</button>
+            </div>
+          </div>
+
           <!-- 비밀번호 변경 -->
           <div class="pw-section">
             <h4 class="pw-title">비밀번호 변경</h4>
@@ -227,6 +271,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useUsersStore } from '@/stores/users'
 import { adminApi } from '@/api/admin'
+import { companyApi } from '@/api/company'
+import { teamApi } from '@/api/team'
 import type { ThemeKey, UserStatus } from '@/types'
 import type { ManagedUser } from '@/stores/users'
 
@@ -280,6 +326,83 @@ const filteredUsers = computed(() => {
 const selectedUser = ref<ManagedUser | null>(null)
 const newPw = ref('')
 const newPwConfirm = ref('')
+
+// 회사/팀 연결
+const userCompanies = ref<any[]>([])
+const userTeams = ref<any[]>([])
+const allCompanies = ref<any[]>([])
+const allTeams = ref<any[]>([])
+const addCompanyId = ref<number | null>(null)
+const addTeamId = ref<number | null>(null)
+
+const availableCompanies = computed(() => {
+  const linked = new Set(userCompanies.value.map((c: any) => c.companyId))
+  return allCompanies.value.filter((c: any) => !linked.has(c.id) && c.isActive)
+})
+const availableTeams = computed(() => {
+  const linked = new Set(userTeams.value.map((t: any) => t.teamId))
+  return allTeams.value.filter((t: any) => !linked.has(t.id) && t.isActive)
+})
+
+async function loadUserRelations(userId: number) {
+  try {
+    const [compRes, teamRes, allCompRes, allTeamRes] = await Promise.all([
+      adminApi.getUserCompanies(userId),
+      adminApi.getUserTeams(userId),
+      companyApi.getAll(),
+      teamApi.getAll(),
+    ])
+    userCompanies.value = compRes.data
+    userTeams.value = teamRes.data
+    allCompanies.value = allCompRes.data
+    allTeams.value = allTeamRes.data
+  } catch {}
+}
+
+async function addCompany() {
+  if (!addCompanyId.value || !selectedUser.value) return
+  try {
+    await adminApi.addUserCompany(selectedUser.value.id, addCompanyId.value)
+    await loadUserRelations(selectedUser.value.id)
+    addCompanyId.value = null
+  } catch (e: any) { alert(e.response?.data?.message || '추가 실패') }
+}
+async function removeCompany(companyId: number) {
+  if (!selectedUser.value) return
+  try {
+    await adminApi.removeUserCompany(selectedUser.value.id, companyId)
+    await loadUserRelations(selectedUser.value.id)
+  } catch (e: any) { alert(e.response?.data?.message || '해제 실패') }
+}
+async function setPrimaryCompany(companyId: number) {
+  if (!selectedUser.value) return
+  try {
+    await adminApi.setPrimaryUserCompany(selectedUser.value.id, companyId)
+    await loadUserRelations(selectedUser.value.id)
+  } catch (e: any) { alert(e.response?.data?.message || '설정 실패') }
+}
+async function addTeam() {
+  if (!addTeamId.value || !selectedUser.value) return
+  try {
+    await adminApi.addUserTeam(selectedUser.value.id, addTeamId.value)
+    await loadUserRelations(selectedUser.value.id)
+    addTeamId.value = null
+  } catch (e: any) { alert(e.response?.data?.message || '추가 실패') }
+}
+async function removeTeam(teamId: number) {
+  if (!selectedUser.value) return
+  try {
+    await adminApi.removeUserTeam(selectedUser.value.id, teamId)
+    await loadUserRelations(selectedUser.value.id)
+  } catch (e: any) { alert(e.response?.data?.message || '해제 실패') }
+}
+async function setPrimaryTeam(teamId: number) {
+  if (!selectedUser.value) return
+  try {
+    await adminApi.setPrimaryUserTeam(selectedUser.value.id, teamId)
+    await loadUserRelations(selectedUser.value.id)
+  } catch (e: any) { alert(e.response?.data?.message || '설정 실패') }
+}
 const pwError = ref('')
 
 function openUserModal(u: ManagedUser) {
@@ -287,6 +410,11 @@ function openUserModal(u: ManagedUser) {
   newPw.value = ''
   newPwConfirm.value = ''
   pwError.value = ''
+  userCompanies.value = []
+  userTeams.value = []
+  addCompanyId.value = null
+  addTeamId.value = null
+  loadUserRelations(u.id)
 }
 function closeUserModal() { selectedUser.value = null }
 
@@ -593,6 +721,44 @@ function handleLogout() {
   background: var(--color-input-bg); color: var(--color-text);
 }
 .label-optional { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
+
+/* 회사/팀 관계 */
+.relation-section { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--color-separator); }
+.relation-title { font-size: 13px; font-weight: 700; color: var(--color-text); }
+.relation-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.relation-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 14px;
+  background: var(--color-surface); border: 1px solid var(--color-separator);
+  font-size: 12px; color: var(--color-text);
+}
+.relation-chip.primary {
+  background: var(--color-primary-light); border-color: var(--color-primary); color: var(--color-primary);
+}
+.chip-primary-badge {
+  font-size: 10px; font-weight: 700;
+  background: var(--color-primary); color: #fff;
+  padding: 1px 5px; border-radius: 6px;
+}
+.chip-action {
+  font-size: 10px; color: var(--color-primary); cursor: pointer; padding: 0 2px;
+}
+.chip-remove {
+  font-size: 11px; color: var(--color-text-secondary); cursor: pointer; padding: 0 2px;
+}
+.chip-remove:hover { color: #F44336; }
+.empty-sm { font-size: 12px; color: var(--color-text-secondary); }
+.relation-add-row { display: flex; gap: 8px; align-items: center; }
+.relation-select {
+  flex: 1; padding: 7px 10px; border-radius: 8px;
+  border: 1.5px solid var(--color-input-border);
+  background: var(--color-input-bg); color: var(--color-text); font-size: 13px;
+}
+.btn-add-rel {
+  background: var(--color-primary); color: var(--color-on-primary);
+  padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+}
+.btn-add-rel:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* 로그 */
 .log-list { display: flex; flex-direction: column; gap: 6px; }
