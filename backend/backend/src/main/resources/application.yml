@@ -39,7 +39,7 @@ jwt:
 
 app:
   upload:
-    profile-image-dir: ./uploads/profile-images
+    profile-image-dir: ${PROFILE_IMAGE_DIR:/uploads/profile-images}
     base-url: /uploads
 
 logging:
