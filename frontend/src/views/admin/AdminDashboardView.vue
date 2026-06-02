@@ -39,6 +39,22 @@
         </div>
       </div>
 
+      <!-- 빠른 메뉴 -->
+      <div class="quick-menu">
+        <button class="quick-btn" @click="router.push('/admin/companies')">
+          <span class="quick-icon">🏢</span>
+          <span class="quick-label">회사 관리</span>
+        </button>
+        <button class="quick-btn" @click="router.push('/admin/teams')">
+          <span class="quick-icon">⚽</span>
+          <span class="quick-label">팀 관리</span>
+        </button>
+        <button class="quick-btn" @click="router.push('/admin/schedules')">
+          <span class="quick-icon">📅</span>
+          <span class="quick-label">일정 관리</span>
+        </button>
+      </div>
+
       <!-- 승인 대기 섹션 -->
       <section class="section" ref="pendingRef">
         <div class="section-header">
@@ -186,6 +202,8 @@
             <button v-if="selectedUser.status === 'REJECTED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">승인</button>
             <button v-if="selectedUser.status === 'ACTIVE'" class="btn-sm btn-schedule"
               @click="goToUserSchedules(selectedUser.id, selectedUser.name)">일정 보기</button>
+            <button class="btn-sm btn-profile"
+              @click="router.push(`/admin/users/${selectedUser.id}`)">상세 관리</button>
           </div>
 
           <!-- 비밀번호 변경 -->
@@ -399,6 +417,18 @@ async function handleLogout() {
 
 .admin-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
 
+/* 빠른 메뉴 */
+.quick-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.quick-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px; border-radius: 12px;
+  background: var(--color-card); border: 1px solid var(--color-separator);
+  box-shadow: var(--shadow-card); cursor: pointer; transition: transform 0.1s;
+}
+.quick-btn:active { transform: scale(0.96); }
+.quick-icon { font-size: 22px; }
+.quick-label { font-size: 12px; font-weight: 600; color: var(--color-text); }
+
 /* 요약 카드 */
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .stat-card {
@@ -505,6 +535,7 @@ async function handleLogout() {
 .btn-disable  { background: #FFF3E0; color: #E65100; }
 .btn-activate { background: #E8F5E9; color: #2E7D32; }
 .btn-schedule { background: var(--color-primary-light); color: var(--color-primary); }
+.btn-profile  { background: #F3E5F5; color: #6A1B9A; }
 
 .empty-msg {
   text-align: center; padding: 24px;

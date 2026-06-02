@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "schedules")
@@ -46,6 +47,35 @@ public class Schedule {
 
     @Column(columnDefinition = "TEXT")
     private String memo;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "team_id")
+    private Long teamId;
+
+    @Column(name = "start_time")
+    private LocalTime startTime;
+
+    @Column(name = "end_time")
+    private LocalTime endTime;
+
+    @Column(length = 200)
+    private String location;
+
+    @Column(name = "event_type", length = 20)
+    private String eventType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private ScheduleStatus status = ScheduleStatus.SCHEDULED;
+
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
 
     private LocalDateTime deletedAt;
 

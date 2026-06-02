@@ -7,16 +7,50 @@
 
     <div class="reg-body" v-if="!done">
       <form @submit.prevent="handleSubmit">
-        <div class="field" v-for="f in fields" :key="f.key">
-          <label class="field-label">{{ f.label }}</label>
-          <input
-            v-model="form[f.key]"
-            :type="f.type"
-            :placeholder="f.placeholder"
-            class="field-input"
-          />
-          <p v-if="errors[f.key]" class="err">{{ errors[f.key] }}</p>
+        <!-- 아이디 + 중복 확인 -->
+        <div class="field">
+          <label class="field-label">아이디</label>
+          <div class="id-row">
+            <input
+              v-model="form.username"
+              type="text"
+              placeholder="영문 소문자+숫자, 4~20자"
+              class="field-input id-input"
+              @input="onUsernameInput"
+            />
+            <button
+              type="button"
+              class="btn-check"
+              :disabled="!canCheck || checkLoading"
+              @click="checkDuplicate"
+            >{{ checkLoading ? '확인 중' : '중복 확인' }}</button>
+          </div>
+          <p v-if="errors.username" class="err">{{ errors.username }}</p>
+          <p v-if="idCheckResult === 'available'" class="msg-ok">✓ 사용 가능한 아이디입니다.</p>
+          <p v-if="idCheckResult === 'taken'" class="msg-err">✗ 이미 사용 중인 아이디입니다.</p>
         </div>
+
+        <!-- 비밀번호 -->
+        <div class="field">
+          <label class="field-label">비밀번호</label>
+          <input v-model="form.password" type="password" placeholder="영문+숫자 조합, 8자 이상" class="field-input" />
+          <p v-if="errors.password" class="err">{{ errors.password }}</p>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div class="field">
+          <label class="field-label">비밀번호 확인</label>
+          <input v-model="form.passwordConfirm" type="password" placeholder="비밀번호를 다시 입력하세요" class="field-input" />
+          <p v-if="errors.passwordConfirm" class="err">{{ errors.passwordConfirm }}</p>
+        </div>
+
+        <!-- 이름 -->
+        <div class="field">
+          <label class="field-label">이름</label>
+          <input v-model="form.name" type="text" placeholder="이름을 입력하세요" class="field-input" />
+          <p v-if="errors.name" class="err">{{ errors.name }}</p>
+        </div>
+
         <button type="submit" class="btn-primary">가입 신청</button>
       </form>
     </div>
@@ -31,9 +65,10 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { authApi } from '@/api/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -41,16 +76,39 @@ const done = ref(false)
 const form = reactive({ username: '', password: '', passwordConfirm: '', name: '' })
 const errors = reactive<Record<string, string>>({})
 
-const fields = [
-  { key: 'username' as const,        label: '아이디',       type: 'text',     placeholder: '영문 소문자+숫자, 4~20자' },
-  { key: 'password' as const,        label: '비밀번호',     type: 'password', placeholder: '영문+숫자 조합, 8자 이상' },
-  { key: 'passwordConfirm' as const, label: '비밀번호 확인', type: 'password', placeholder: '비밀번호를 다시 입력하세요' },
-  { key: 'name' as const,            label: '이름',         type: 'text',     placeholder: '이름을 입력하세요' },
-]
+// 아이디 중복 확인 상태
+const idCheckResult = ref<'none' | 'available' | 'taken'>('none')
+const checkLoading = ref(false)
+
+const canCheck = computed(() => /^[a-z][a-z0-9]{3,19}$/.test(form.username))
+
+function onUsernameInput() {
+  idCheckResult.value = 'none'
+  delete (errors as Record<string, string>).username
+}
+
+async function checkDuplicate() {
+  if (!canCheck.value) return
+  checkLoading.value = true
+  try {
+    const res = await authApi.checkLoginId(form.username)
+    idCheckResult.value = res.data.available ? 'available' : 'taken'
+  } catch {
+    idCheckResult.value = 'none'
+  } finally {
+    checkLoading.value = false
+  }
+}
 
 function validate(): boolean {
-  Object.keys(errors).forEach(k => delete (errors as Record<string,string>)[k])
-  if (!/^[a-z][a-z0-9]{3,19}$/.test(form.username)) errors.username = '영문 소문자로 시작, 영문+숫자, 4~20자'
+  Object.keys(errors).forEach(k => delete (errors as Record<string, string>)[k])
+  if (!/^[a-z][a-z0-9]{3,19}$/.test(form.username)) {
+    errors.username = '영문 소문자로 시작, 영문+숫자, 4~20자'
+  } else if (idCheckResult.value === 'none') {
+    errors.username = '아이디 중복 확인을 해주세요.'
+  } else if (idCheckResult.value === 'taken') {
+    errors.username = '이미 사용 중인 아이디입니다.'
+  }
   if (!/^(?=.*[a-zA-Z])(?=.*\d).{8,50}$/.test(form.password)) errors.password = '영문+숫자 조합, 8자 이상'
   if (form.password !== form.passwordConfirm) errors.passwordConfirm = '비밀번호가 일치하지 않습니다'
   if (!form.name.trim()) errors.name = '이름을 입력하세요'
@@ -95,7 +153,26 @@ form { display: flex; flex-direction: column; gap: 14px; }
   outline: none;
 }
 .field-input:focus { border-color: var(--color-primary); }
+
+/* 아이디 행 */
+.id-row { display: flex; gap: 8px; }
+.id-input { flex: 1; }
+.btn-check {
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.btn-check:disabled { opacity: 0.45; cursor: not-allowed; }
+
 .err { font-size: 12px; color: #F44336; }
+.msg-ok { font-size: 12px; color: #2E7D32; }
+.msg-err { font-size: 12px; color: #F44336; }
+
 .btn-primary {
   margin-top: 8px; padding: 14px; border-radius: 12px;
   background: var(--color-btn); color: var(--color-btn-text);

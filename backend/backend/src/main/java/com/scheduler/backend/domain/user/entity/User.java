@@ -37,6 +37,13 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserStatus status;
 
+    @Column(length = 1000)
+    private String profileImageUrl;
+
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    @Builder.Default
+    private Integer tokenVersion = 0;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -38,6 +38,7 @@
             autocomplete="current-password"
           />
         </div>
+        <p v-if="loginIdChangedMsg" class="info-msg">{{ loginIdChangedMsg }}</p>
         <p v-if="authStore.error" class="error-msg">{{ authStore.error }}</p>
         <button type="submit" class="btn-primary">로그인</button>
       </form>
@@ -54,11 +55,12 @@
 
 <script setup lang="ts">
 import { reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
@@ -66,6 +68,12 @@ const form = reactive({ username: '', password: '' })
 
 const themeLabel = computed(() => ({ light: '라이트', dark: '다크', orange: '오렌지' }[themeStore.current]))
 const themeColor = computed(() => ({ light: '#1976D2', dark: '#00CBA8', orange: '#F4511E' }[themeStore.current]))
+
+const loginIdChangedMsg = computed(() =>
+  route.query.reason === 'login-id-changed'
+    ? '로그인 아이디가 변경되었습니다. 변경된 아이디로 다시 로그인해 주세요.'
+    : null
+)
 
 async function handleLogin() {
   const ok = await authStore.login(form.username, form.password)
@@ -155,6 +163,15 @@ async function handleLogin() {
   font-size: 13px;
   color: #F44336;
   text-align: center;
+}
+.info-msg {
+  font-size: 13px;
+  color: #1976D2;
+  text-align: center;
+  background: #E3F2FD;
+  padding: 10px 14px;
+  border-radius: 8px;
+  line-height: 1.5;
 }
 .btn-primary {
   margin-top: 6px;

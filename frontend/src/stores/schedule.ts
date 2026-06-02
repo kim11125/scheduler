@@ -40,9 +40,14 @@ export const useScheduleStore = defineStore('schedule', () => {
       category: data.category as Category,
       baseballType: data.baseballType || null,
       date: data.date,
+      startTime: data.startTime || null,
       endDate: data.endDate || null,
+      endTime: data.endTime || null,
+      location: data.location || null,
       memo: data.memo || undefined,
       targetUserId: data.targetUserId || null,
+      teamId: data.teamId || null,
+      status: data.status,
     })
     schedules.value.unshift(res.data)
     return res.data
@@ -54,8 +59,13 @@ export const useScheduleStore = defineStore('schedule', () => {
       category: data.category as Category,
       baseballType: data.baseballType || null,
       date: data.date,
+      startTime: data.startTime || null,
       endDate: data.endDate || null,
+      endTime: data.endTime || null,
+      location: data.location || null,
       memo: data.memo || undefined,
+      teamId: data.teamId || null,
+      status: data.status,
     })
     const idx = schedules.value.findIndex(s => s.id === id)
     if (idx !== -1) schedules.value[idx] = res.data

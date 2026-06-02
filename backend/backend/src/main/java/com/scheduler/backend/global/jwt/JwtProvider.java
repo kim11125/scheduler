@@ -25,9 +25,14 @@ public class JwtProvider {
     }
 
     public String generate(Long userId, String role) {
+        return generate(userId, role, 0);
+    }
+
+    public String generate(Long userId, String role, int tokenVersion) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("role", role)
+                .claim("tokenVersion", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)
@@ -58,5 +63,10 @@ public class JwtProvider {
 
     public String getRole(String token) {
         return parse(token).get("role", String.class);
+    }
+
+    public int getTokenVersion(String token) {
+        Integer ver = parse(token).get("tokenVersion", Integer.class);
+        return ver != null ? ver : 0;
     }
 }

@@ -20,7 +20,7 @@
           />
         </div>
         <!-- 내 정보 / 로그아웃 -->
-        <button class="header-btn" @click="profileOpen = true">내 정보</button>
+        <button class="header-btn" @click="router.push('/my-profile')">내 정보</button>
         <button class="header-btn header-btn-logout" @click="handleLogout">로그아웃</button>
       </div>
     </header>
@@ -94,7 +94,9 @@
               </span>
             </div>
             <span class="card-title">{{ s.title }}</span>
+            <span v-if="s.startTime" class="card-memo">{{ s.startTime }}{{ s.endTime ? ' ~ ' + s.endTime : '' }}</span>
             <span v-if="s.endDate && s.endDate !== s.date" class="card-memo">~ {{ s.endDate }}</span>
+            <span v-if="s.location" class="card-memo">📍 {{ s.location }}</span>
             <span v-if="s.memo" class="card-memo">{{ s.memo }}</span>
           </div>
           <span class="card-arrow">&#8250;</span>
@@ -168,14 +170,31 @@
               </select>
             </div>
 
+            <!-- 팀 선택 -->
+            <div class="form-field" v-if="myTeams.length > 0">
+              <label class="form-label">팀 <span class="optional">(선택)</span></label>
+              <select v-model="formData.teamId" class="form-input">
+                <option :value="null">팀 없음</option>
+                <option v-for="t in myTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+              </select>
+            </div>
+
             <!-- 날짜 -->
             <div class="form-field">
               <label class="form-label">시작일</label>
               <input v-model="formData.date" type="date" class="form-input" required />
             </div>
             <div class="form-field">
+              <label class="form-label">시작 시간 <span class="optional">(선택)</span></label>
+              <input v-model="formData.startTime" type="time" class="form-input" />
+            </div>
+            <div class="form-field">
               <label class="form-label">종료일 <span class="label-optional">(선택)</span></label>
               <input v-model="formData.endDate" type="date" class="form-input" :min="formData.date" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">종료 시간 <span class="optional">(선택)</span></label>
+              <input v-model="formData.endTime" type="time" class="form-input" />
             </div>
 
             <!-- 제목 -->
@@ -224,6 +243,23 @@
               </div>
             </Transition>
 
+            <!-- 장소 -->
+            <div class="form-field">
+              <label class="form-label">장소 <span class="optional">(선택)</span></label>
+              <input v-model="formData.location" type="text" class="form-input" placeholder="장소를 입력하세요" maxlength="200" />
+            </div>
+
+            <!-- 상태 -->
+            <div class="form-field">
+              <label class="form-label">상태</label>
+              <select v-model="formData.status" class="form-input">
+                <option value="SCHEDULED">예정</option>
+                <option value="CONFIRMED">확정</option>
+                <option value="CHANGED">변경</option>
+                <option value="CANCELLED">취소</option>
+              </select>
+            </div>
+
             <!-- 메모 -->
             <div class="form-field">
               <label class="form-label">메모 <span class="optional">(선택)</span></label>
@@ -254,7 +290,7 @@ import { useScheduleStore } from '@/stores/schedule'
 import { useCalendar } from '@/composables/useCalendar'
 import { userApi } from '@/api/user'
 import { adminApi } from '@/api/admin'
-import type { Schedule, Category, ThemeKey } from '@/types'
+import type { Schedule, Category, ThemeKey, ScheduleStatus, TeamRef } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 
 const router = useRouter()
@@ -355,9 +391,14 @@ const formData = reactive({
   category: '' as Category | '',
   baseballType: null as 'HOME' | 'AWAY' | null,
   date: '',
+  startTime: '',
   endDate: '',
+  endTime: '',
+  location: '',
   memo: '',
   targetUserId: null as number | null,
+  teamId: null as number | null,
+  status: 'SCHEDULED' as ScheduleStatus,
 })
 const formErrors = reactive<Record<string, string>>({})
 
@@ -366,9 +407,14 @@ function resetForm() {
   formData.category = ''
   formData.baseballType = null
   formData.date = selectedDate.value || todayStr
+  formData.startTime = ''
   formData.endDate = ''
+  formData.endTime = ''
+  formData.location = ''
   formData.memo = ''
   formData.targetUserId = null
+  formData.teamId = null
+  formData.status = 'SCHEDULED'
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
 }
 
@@ -385,9 +431,14 @@ function openEditModal(s: Schedule) {
   formData.category = s.category
   formData.baseballType = s.baseballType
   formData.date = s.date
+  formData.startTime = s.startTime ?? ''
   formData.endDate = s.endDate || ''
+  formData.endTime = s.endTime ?? ''
+  formData.location = s.location ?? ''
   formData.memo = s.memo ?? ''
   formData.targetUserId = null
+  formData.teamId = s.teamId ?? null
+  formData.status = s.status ?? 'SCHEDULED'
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
   modalOpen.value = true
 }
@@ -455,6 +506,8 @@ async function handlePwChange() {
 
 // 관리자용 유저 목록
 const adminUsers = ref<{id: number; name: string; username: string}[]>([])
+// 내 팀 목록
+const myTeams = ref<TeamRef[]>([])
 
 onMounted(async () => {
   scheduleStore.fetchAll()
@@ -462,6 +515,12 @@ onMounted(async () => {
   if (role === 'ADMIN' || role === 'MANAGER') {
     const res = await adminApi.getUsers()
     adminUsers.value = res.data.filter((u: any) => u.status === 'ACTIVE' && u.role === 'USER')
+  }
+  try {
+    const profileRes = await userApi.getMyProfile()
+    myTeams.value = profileRes.data.teams ?? []
+  } catch {
+    myTeams.value = []
   }
 })
 

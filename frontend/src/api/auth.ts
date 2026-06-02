@@ -8,6 +8,12 @@ export interface LoginResponse {
   status: string
 }
 
+export interface CheckLoginIdResponse {
+  loginId: string
+  available: boolean
+  message: string
+}
+
 export const authApi = {
   login: (username: string, password: string) =>
     client.post<LoginResponse>('/api/auth/login', { username, password }),
@@ -17,4 +23,7 @@ export const authApi = {
 
   logout: (username: string) =>
     client.post(`/api/auth/logout?username=${encodeURIComponent(username)}`),
+
+  checkLoginId: (loginId: string) =>
+    client.get<CheckLoginIdResponse>(`/api/auth/check-login-id?loginId=${encodeURIComponent(loginId)}`),
 }

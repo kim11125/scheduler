@@ -48,7 +48,8 @@ public class AuthService {
 
         loginLogService.record(user.getId(), user.getUsername(), "LOGIN", ip);
 
-        String token = jwtProvider.generate(user.getId(), user.getRole());
+        int tokenVersion = user.getTokenVersion() != null ? user.getTokenVersion() : 0;
+        String token = jwtProvider.generate(user.getId(), user.getRole(), tokenVersion);
         return new LoginResponse(token, user.getId(), user.getName(),
                 user.getRole(), user.getStatus().name());
     }

@@ -47,6 +47,17 @@
           </div>
         </div>
 
+        <!-- 상태 필터 -->
+        <div class="filter-row">
+          <span class="filter-label">상태</span>
+          <div class="filter-chips">
+            <button class="chip" :class="{ active: statusFilter === null }" @click="statusFilter = null">전체</button>
+            <button v-for="s in STATUS_OPTIONS" :key="s.value"
+              class="chip" :class="{ active: statusFilter === s.value }"
+              @click="statusFilter = s.value">{{ s.label }}</button>
+          </div>
+        </div>
+
         <!-- 월 이동 -->
         <div class="filter-row month-row">
           <button class="nav-sm" @click="prevMonth">‹</button>
@@ -139,8 +150,29 @@
               <input v-model="formData.date" type="date" class="form-input" />
             </div>
             <div class="form-field">
+              <label class="form-label">시작 시간 <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(선택)</span></label>
+              <input v-model="formData.startTime" type="time" class="form-input" />
+            </div>
+            <div class="form-field">
               <label class="form-label">종료일 <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(선택)</span></label>
               <input v-model="formData.endDate" type="date" class="form-input" :min="formData.date" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">종료 시간 <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(선택)</span></label>
+              <input v-model="formData.endTime" type="time" class="form-input" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">장소 <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(선택)</span></label>
+              <input v-model="formData.location" type="text" class="form-input" maxlength="200" placeholder="장소 입력" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">상태</label>
+              <select v-model="formData.status" class="form-input">
+                <option value="SCHEDULED">예정</option>
+                <option value="CONFIRMED">확정</option>
+                <option value="CHANGED">변경</option>
+                <option value="CANCELLED">취소</option>
+              </select>
             </div>
             <div class="form-field">
               <label class="form-label">제목</label>
@@ -206,8 +238,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUsersStore } from '@/stores/users'
 import { adminApi } from '@/api/admin'
-import type { Schedule, Category, ScheduleFormData } from '@/types'
-import { CATEGORY_LABELS } from '@/types'
+import type { Schedule, Category, ScheduleFormData, ScheduleStatus } from '@/types'
+import { CATEGORY_LABELS, SCHEDULE_STATUS_LABELS } from '@/types'
 
 const router = useRouter()
 const route  = useRoute()
@@ -269,8 +301,11 @@ function nextMonth() {
 // ── 필터 ─────────────────────────────────────────────────────────────────
 // URL query로 사용자 필터 초기값 세팅
 const initialUserId = route.query.userId ? Number(route.query.userId) : null
-const userFilter = ref<number | null>(initialUserId)
-const catFilter  = ref<Category | null>(null)
+const userFilter   = ref<number | null>(initialUserId)
+const catFilter    = ref<Category | null>(null)
+const statusFilter = ref<ScheduleStatus | null>(null)
+
+const STATUS_OPTIONS = Object.entries(SCHEDULE_STATUS_LABELS).map(([value, label]) => ({ value: value as ScheduleStatus, label }))
 
 const activeUserList = computed(() =>
   usersStore.users.filter(u => u.role !== 'ADMIN')
@@ -287,6 +322,7 @@ const filteredSchedules = computed(() => {
       if (!s.date.startsWith(prefix)) return false
       if (userFilter.value !== null && s.userId !== userFilter.value) return false
       if (catFilter.value !== null && s.category !== catFilter.value) return false
+      if (statusFilter.value !== null && s.status !== statusFilter.value) return false
       return true
     })
     .sort((a, b) => a.date.localeCompare(b.date) || b.id - a.id)
@@ -295,7 +331,7 @@ const filteredSchedules = computed(() => {
 // ── 수정 모달 ─────────────────────────────────────────────────────────────
 const editTarget = ref<Schedule | null>(null)
 const formData = reactive<ScheduleFormData>({
-  title: '', category: '', baseballType: null, date: '', endDate: '', memo: '',
+  title: '', category: '', baseballType: null, date: '', startTime: '', endDate: '', endTime: '', location: '', memo: '', status: 'SCHEDULED',
 })
 
 function openEdit(s: Schedule) {
@@ -304,8 +340,12 @@ function openEdit(s: Schedule) {
   formData.category = s.category
   formData.baseballType = s.baseballType
   formData.date = s.date
+  formData.startTime = s.startTime ?? ''
   formData.endDate = s.endDate || ''
+  formData.endTime = s.endTime ?? ''
+  formData.location = s.location ?? ''
   formData.memo = s.memo ?? ''
+  formData.status = s.status ?? 'SCHEDULED'
 }
 
 watch(() => formData.category, (cat) => {
