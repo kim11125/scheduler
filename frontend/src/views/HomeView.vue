@@ -129,7 +129,7 @@
             <div class="user-profile-row">
               <div class="profile-avatar-wrap" @click="triggerImageUpload">
                 <img v-if="profileImageUrl" :src="profileImageUrl" class="profile-avatar-img" alt="프로필" />
-                <div v-else class="profile-avatar-lg" :style="{ background: '#1976D2' }">
+                <div v-else class="profile-avatar-lg" :style="{ background: 'var(--color-primary)' }">
                   {{ authStore.user?.name?.[0] }}
                 </div>
                 <div class="profile-avatar-overlay">📷</div>
@@ -313,9 +313,11 @@ const isAdminUser = computed(() =>
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 const themes: { key: ThemeKey; color: string; label: string }[] = [
-  { key: 'light',  color: '#1976D2', label: '라이트' },
-  { key: 'dark',   color: '#00CBA8', label: '다크' },
-  { key: 'orange', color: '#F4511E', label: '오렌지' },
+  { key: 'lavender',   color: '#8B7FD4', label: '라벤더' },
+  { key: 'peach',      color: '#E8836A', label: '피치' },
+  { key: 'mint',       color: '#4DB896', label: '민트' },
+  { key: 'dark',       color: '#A695F0', label: '다크' },
+  { key: 'rose-milk',  color: '#D4789A', label: '로즈' },
 ]
 
 // ── Month navigation ───────────────────────────────────────────────────────
@@ -577,7 +579,7 @@ function handleLogout() {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--color-background);
+  background: var(--color-bg, var(--color-background));
 }
 
 /* ── Header ── */
@@ -585,43 +587,44 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  height: 52px;
-  background: var(--color-status-bar);
-  color: #fff;
+  padding: 0 20px;
+  height: 56px;
+  background: var(--color-header-bg, var(--color-status-bar));
+  color: var(--color-header-text, #fff);
   flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; gap: 8px; }
 .app-title { font-size: 17px; font-weight: 700; }
 .back-to-admin {
-  font-size: 13px; color: rgba(255,255,255,0.85);
-  padding: 4px 8px; border-radius: 8px;
+  font-size: 12px; color: rgba(255,255,255,0.85);
+  padding: 4px 10px; border-radius: var(--radius-pill);
   background: rgba(255,255,255,0.15);
   cursor: pointer;
 }
-.header-right { display: flex; align-items: center; gap: 12px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
 
-.theme-switcher { display: flex; gap: 6px; align-items: center; }
+.theme-switcher { display: flex; gap: 5px; align-items: center; }
 .theme-dot-btn {
-  width: 16px; height: 16px;
+  width: 14px; height: 14px;
   border-radius: 50%;
   background: var(--dot-color);
-  border: 2px solid transparent;
+  border: 2px solid rgba(255,255,255,0.3);
   transition: border-color 0.2s, transform 0.2s;
   cursor: pointer;
 }
 .theme-dot-btn.active {
   border-color: #fff;
-  transform: scale(1.25);
+  transform: scale(1.3);
 }
 
 .header-profile-btn {
   width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(255,255,255,0.25);
-  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.45);
   cursor: pointer; padding: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  transition: opacity 0.2s;
 }
 .header-profile-btn:active { opacity: 0.8; }
 .header-profile-img {
@@ -631,17 +634,18 @@ function handleLogout() {
   font-size: 13px; font-weight: 700; color: #fff;
 }
 .header-btn {
-  font-size: 12px; font-weight: 600; color: #fff;
-  padding: 5px 11px; border-radius: 10px;
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9);
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   cursor: pointer;
+  transition: opacity 0.2s;
 }
 .header-btn:active { opacity: 0.75; }
 .header-btn-logout {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.75);
 }
 .hidden-input { display: none; }
 .profile-avatar-wrap {
@@ -661,19 +665,21 @@ function handleLogout() {
 
 /* 프로필 모달 */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
-  display: flex; align-items: flex-end;
+  position: fixed; inset: 0; background: var(--color-overlay); z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
 }
 .modal-sheet {
   width: 100%; max-width: 430px; margin: 0 auto;
-  background: var(--color-card); border-radius: 20px 20px 0 0;
+  background: var(--color-surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: 12px 28px 48px; max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.25s ease;
 }
 .profile-modal-sheet { padding: 12px 0 48px; }
 .profile-modal-inner { padding: 0 32px; }
 .modal-handle {
-  width: 36px; height: 4px; border-radius: 2px;
-  background: var(--color-separator); margin: 0 auto 18px;
+  width: 32px; height: 4px; border-radius: var(--radius-pill);
+  background: var(--color-border); margin: 0 auto 18px;
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -684,7 +690,7 @@ function handleLogout() {
 
 .user-profile-row {
   display: flex; align-items: center; gap: 16px;
-  padding: 16px 0 20px; border-bottom: 1px solid var(--color-separator);
+  padding: 16px 0 20px; border-bottom: 1px solid var(--color-border);
   margin-bottom: 24px;
 }
 .profile-avatar-lg {
@@ -699,16 +705,17 @@ function handleLogout() {
 .pw-section { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
 .pw-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
 .pw-input {
-  padding: 12px 14px; border-radius: 10px;
+  padding: 12px 14px; border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   color: var(--color-text); font-size: 14px; outline: none;
+  width: 100%;
 }
-.pw-input:focus { border-color: var(--color-primary); }
-.pw-error { font-size: 12px; color: #F44336; margin-top: -4px; }
-.pw-success { font-size: 12px; color: #2E7D32; margin-top: -4px; }
+.pw-input:focus { border-color: var(--color-input-focus); }
+.pw-error { font-size: 12px; color: var(--color-danger); margin-top: -4px; }
+.pw-success { font-size: 12px; color: var(--color-success); margin-top: -4px; }
 .btn-pw-save {
-  padding: 13px; border-radius: 10px; margin-top: 4px;
+  padding: 13px; border-radius: var(--radius-md); margin-top: 4px;
   background: var(--color-primary); color: var(--color-on-primary);
   font-size: 14px; font-weight: 700; cursor: pointer;
 }
@@ -718,12 +725,12 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  background: var(--color-status-bar);
-  color: #fff;
+  padding: 8px 20px;
+  background: var(--color-header-bg, var(--color-status-bar));
+  color: var(--color-header-text, #fff);
   flex-shrink: 0;
 }
-.month-title { font-size: 16px; font-weight: 700; }
+.month-title { font-size: 15px; font-weight: 700; }
 .nav-arrow {
   font-size: 22px; color: rgba(255,255,255,0.9);
   width: 32px; height: 32px;
@@ -736,8 +743,8 @@ function handleLogout() {
 /* ── Calendar ── */
 .calendar-wrap {
   flex-shrink: 0;
-  background: var(--color-background);
-  padding: 4px 8px 0;
+  background: var(--color-bg, var(--color-background));
+  padding: 6px 8px 0;
 }
 
 .dow-row {
@@ -747,7 +754,7 @@ function handleLogout() {
 }
 .dow-cell {
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-secondary);
   padding: 4px 0;
@@ -758,7 +765,7 @@ function handleLogout() {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+  gap: 2px;
 }
 .cal-cell {
   aspect-ratio: 1 / 1.1;
@@ -767,18 +774,18 @@ function handleLogout() {
   align-items: center;
   padding-top: 4px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   position: relative;
   transition: background 0.15s;
   min-height: 46px;
 }
-.cal-cell:active { background: var(--color-surface); }
+.cal-cell:active { background: var(--color-surface-muted, var(--color-surface)); }
 .cal-cell.empty { cursor: default; }
 
 .day-num {
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text);
   border-radius: 50%;
@@ -792,7 +799,7 @@ function handleLogout() {
   font-weight: 700;
 }
 .cal-cell.selected:not(.today) .day-num {
-  background: var(--color-primary-light);
+  background: var(--color-primary-soft, var(--color-primary-light));
   color: var(--color-primary);
   font-weight: 700;
 }
@@ -818,8 +825,8 @@ function handleLogout() {
 .day-panel {
   flex: 1;
   overflow-y: auto;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-separator);
+  background: var(--color-surface-muted, var(--color-surface));
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
 }
@@ -828,23 +835,25 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 8px;
+  padding: 14px 16px 8px;
   flex-shrink: 0;
 }
 .day-panel-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
 }
 .add-text-btn {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-primary);
   font-weight: 600;
-  padding: 4px 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft, var(--color-primary-light));
 }
 
 .schedule-list {
-  padding: 0 12px 80px;
+  padding: 4px 12px 80px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -855,19 +864,21 @@ function handleLogout() {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: var(--color-card);
-  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: opacity 0.15s;
-  border: 1px solid var(--color-separator);
+  transition: opacity 0.15s, transform 0.1s;
+  border: 1px solid var(--color-border);
 }
-.schedule-card:active { opacity: 0.75; }
+.schedule-card:active { opacity: 0.8; transform: scale(0.99); }
 
 .card-dot {
-  width: 10px; height: 10px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 5px;
 }
 .card-body {
   flex: 1;
@@ -877,10 +888,10 @@ function handleLogout() {
 }
 .card-top { display: flex; align-items: center; gap: 6px; }
 .card-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
 }
 .card-title {
   font-size: 14px; font-weight: 600; color: var(--color-text);
@@ -892,7 +903,7 @@ function handleLogout() {
 }
 .card-arrow {
   font-size: 18px;
-  color: var(--color-text-secondary);
+  color: var(--color-border);
 }
 
 .empty-day {
@@ -910,24 +921,26 @@ function handleLogout() {
   color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
-  text-decoration: underline;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft, var(--color-primary-light));
 }
 
 /* ── FAB ── */
 .fab {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   right: calc(50% - 215px + 20px);
   width: 52px; height: 52px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: var(--color-on-primary);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  color: var(--color-btn-text);
+  box-shadow: var(--shadow-soft);
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.15s, box-shadow 0.15s;
   z-index: 100;
 }
-.fab:active { transform: scale(0.93); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.fab:active { transform: scale(0.93); }
 .fab-icon { font-size: 26px; line-height: 1; font-weight: 300; }
 
 @media (max-width: 430px) {
@@ -949,10 +962,10 @@ function handleLogout() {
   width: 100%;
   max-width: 430px;
   max-height: 90vh;
-  background: var(--color-card);
-  border-radius: 20px 20px 0 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   overflow-y: auto;
-  padding: 0 0 env(safe-area-inset-bottom, 16px);
+  padding: 0 0 env(safe-area-inset-bottom, 24px);
   box-shadow: var(--shadow-modal);
   animation: slideUp 0.25s ease;
 }
@@ -961,17 +974,17 @@ function handleLogout() {
   to   { transform: translateY(0); }
 }
 .modal-handle {
-  width: 40px; height: 4px;
-  background: var(--color-separator);
-  border-radius: 2px;
-  margin: 10px auto 0;
+  width: 32px; height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  margin: 12px auto 0;
 }
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--color-separator);
+  border-bottom: 1px solid var(--color-border);
 }
 .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--color-text); }
 .modal-close { font-size: 18px; color: var(--color-text-secondary); padding: 4px 8px; }
@@ -984,15 +997,15 @@ function handleLogout() {
 }
 .form-field { display: flex; flex-direction: column; gap: 6px; }
 .form-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-secondary);
 }
-.required { color: #F44336; margin-left: 2px; }
+.required { color: var(--color-danger); margin-left: 2px; }
 .optional { font-weight: 400; color: var(--color-text-secondary); }
 .form-input {
   padding: 11px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   color: var(--color-text);
@@ -1001,9 +1014,9 @@ function handleLogout() {
   width: 100%;
   transition: border-color 0.2s;
 }
-.form-input:focus { border-color: var(--color-primary); }
+.form-input:focus { border-color: var(--color-input-focus); }
 .form-textarea { resize: none; font-family: inherit; }
-.form-err { font-size: 12px; color: #F44336; }
+.form-err { font-size: 12px; color: var(--color-danger); }
 
 /* Radio grid */
 .radio-grid {
@@ -1021,7 +1034,7 @@ function handleLogout() {
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   cursor: pointer;
@@ -1051,18 +1064,18 @@ function handleLogout() {
 }
 .action-right { display: flex; gap: 8px; }
 .btn-delete {
-  padding: 11px 16px; border-radius: 10px;
-  background: #FFEBEE; color: #C62828;
+  padding: 11px 16px; border-radius: var(--radius-md);
+  background: var(--color-danger-soft); color: var(--color-danger);
   font-size: 14px; font-weight: 600;
 }
 .btn-cancel {
-  padding: 11px 18px; border-radius: 10px;
-  background: var(--color-surface); color: var(--color-text-secondary);
+  padding: 11px 18px; border-radius: var(--radius-md);
+  background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary);
   font-size: 14px; font-weight: 600;
-  border: 1px solid var(--color-separator);
+  border: 1px solid var(--color-border);
 }
 .btn-save {
-  padding: 11px 24px; border-radius: 10px;
+  padding: 11px 24px; border-radius: var(--radius-md);
   background: var(--color-btn); color: var(--color-btn-text);
   font-size: 14px; font-weight: 700;
 }

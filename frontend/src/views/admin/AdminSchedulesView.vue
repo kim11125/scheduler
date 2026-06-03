@@ -377,39 +377,41 @@ function formatDay(dateStr: string): string {
 <style scoped>
 .admin-sched {
   min-height: 100vh;
-  background: var(--color-background);
+  background: var(--color-bg, var(--color-background));
   overflow-y: auto;
 }
 
 .admin-header {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; height: 52px;
-  background: var(--color-status-bar); color: #fff;
+  padding: 0 16px; height: 56px;
+  background: var(--color-header-bg, var(--color-status-bar));
+  color: var(--color-header-text, #fff);
 }
-.back-btn { font-size: 24px; color: #fff; width: 32px; }
+.back-btn { font-size: 24px; color: var(--color-header-text, #fff); width: 32px; }
 .admin-title { font-size: 16px; font-weight: 700; }
 
 .admin-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
 
 /* 필터 */
 .filter-section {
-  background: var(--color-card);
-  border-radius: 12px;
-  border: 1px solid var(--color-separator);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
   padding: 14px;
   display: flex; flex-direction: column; gap: 10px;
 }
 .filter-row { display: flex; align-items: flex-start; gap: 10px; }
 .filter-label {
-  font-size: 12px; font-weight: 600; color: var(--color-text-secondary);
-  min-width: 28px; padding-top: 4px;
+  font-size: 11px; font-weight: 600; color: var(--color-text-secondary);
+  min-width: 28px; padding-top: 5px;
 }
 .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
-  font-size: 12px; padding: 4px 11px; border-radius: 12px;
-  background: var(--color-surface); color: var(--color-text-secondary);
-  border: 1px solid var(--color-separator); cursor: pointer;
+  font-size: 12px; padding: 4px 12px; border-radius: var(--radius-pill);
+  background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary);
+  border: 1px solid var(--color-border); cursor: pointer;
   transition: all 0.15s;
 }
 .chip.active {
@@ -422,7 +424,7 @@ function formatDay(dateStr: string): string {
   font-size: 20px; color: var(--color-primary);
   width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: var(--color-primary-light);
+  border-radius: 50%; background: var(--color-primary-soft, var(--color-primary-light));
 }
 
 .result-count {
@@ -435,9 +437,9 @@ function formatDay(dateStr: string): string {
 .sched-card {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px;
-  background: var(--color-card);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-separator);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: opacity 0.15s;
@@ -449,7 +451,7 @@ function formatDay(dateStr: string): string {
   min-width: 28px;
 }
 .sched-dot {
-  width: 10px; height: 10px; border-radius: 50%;
+  width: 8px; height: 8px; border-radius: 50%;
 }
 .sched-date-col {
   font-size: 10px; color: var(--color-text-secondary);
@@ -459,14 +461,14 @@ function formatDay(dateStr: string): string {
 .sched-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .sched-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .sched-badge {
-  font-size: 11px; font-weight: 600;
-  padding: 2px 8px; border-radius: 8px;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: var(--radius-pill);
 }
 .sched-user-tag {
   font-size: 11px; color: var(--color-text-secondary);
-  background: var(--color-surface);
-  padding: 2px 7px; border-radius: 8px;
-  border: 1px solid var(--color-separator);
+  background: var(--color-surface-muted, var(--color-surface));
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
 }
 .sched-title {
   font-size: 14px; font-weight: 600; color: var(--color-text);
@@ -476,7 +478,7 @@ function formatDay(dateStr: string): string {
   font-size: 12px; color: var(--color-text-secondary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
-.sched-arrow { font-size: 18px; color: var(--color-text-secondary); }
+.sched-arrow { font-size: 18px; color: var(--color-border); }
 
 .empty-msg {
   text-align: center; padding: 32px;
@@ -492,21 +494,22 @@ function formatDay(dateStr: string): string {
 }
 .modal-sheet {
   width: 100%; max-width: 430px; max-height: 90vh;
-  background: var(--color-card);
-  border-radius: 20px 20px 0 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   overflow-y: auto;
+  box-shadow: var(--shadow-modal);
   animation: slideUp 0.25s ease;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .modal-handle {
-  width: 40px; height: 4px;
-  background: var(--color-separator); border-radius: 2px;
-  margin: 10px auto 0;
+  width: 32px; height: 4px;
+  background: var(--color-border); border-radius: var(--radius-pill);
+  margin: 12px auto 0;
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 20px 10px;
-  border-bottom: 1px solid var(--color-separator);
+  border-bottom: 1px solid var(--color-border);
 }
 .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--color-text); }
 .modal-close { font-size: 18px; color: var(--color-text-secondary); padding: 4px 8px; }
@@ -520,14 +523,14 @@ function formatDay(dateStr: string): string {
 
 .modal-form { padding: 14px 20px; display: flex; flex-direction: column; gap: 16px; }
 .form-field  { display: flex; flex-direction: column; gap: 6px; }
-.form-label  { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); }
+.form-label  { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
 .form-input {
-  padding: 10px 13px; border-radius: 10px;
+  padding: 10px 13px; border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg); color: var(--color-text);
   font-size: 14px; outline: none; width: 100%;
 }
-.form-input:focus { border-color: var(--color-primary); }
+.form-input:focus { border-color: var(--color-input-focus); }
 .form-textarea { resize: none; font-family: inherit; }
 
 .radio-grid {
@@ -536,7 +539,7 @@ function formatDay(dateStr: string): string {
 .radio-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .radio-item {
   display: flex; align-items: center; gap: 6px;
-  padding: 8px 10px; border-radius: 8px;
+  padding: 8px 10px; border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   cursor: pointer; font-size: 13px; font-weight: 500; color: var(--color-text);
@@ -552,17 +555,18 @@ function formatDay(dateStr: string): string {
 }
 .action-right { display: flex; gap: 8px; }
 .btn-delete {
-  padding: 10px 16px; border-radius: 10px;
-  background: #FFEBEE; color: #C62828; font-size: 14px; font-weight: 600;
+  padding: 10px 16px; border-radius: var(--radius-md);
+  background: var(--color-danger-soft); color: var(--color-danger);
+  font-size: 14px; font-weight: 600;
 }
 .btn-cancel {
-  padding: 10px 16px; border-radius: 10px;
-  background: var(--color-surface); color: var(--color-text-secondary);
+  padding: 10px 16px; border-radius: var(--radius-md);
+  background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary);
   font-size: 14px; font-weight: 600;
-  border: 1px solid var(--color-separator);
+  border: 1px solid var(--color-border);
 }
 .btn-save {
-  padding: 10px 22px; border-radius: 10px;
+  padding: 10px 22px; border-radius: var(--radius-md);
   background: var(--color-btn); color: var(--color-btn-text);
   font-size: 14px; font-weight: 700;
 }
@@ -576,13 +580,13 @@ function formatDay(dateStr: string): string {
 /* 뷰 토글 */
 .view-toggle { display: flex; gap: 4px; }
 .toggle-btn {
-  width: 32px; height: 32px; border-radius: 8px;
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
   font-size: 16px; color: rgba(255,255,255,0.7);
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.12);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
-.toggle-btn.active { background: rgba(255,255,255,0.35); color: #fff; }
+.toggle-btn.active { background: rgba(255,255,255,0.3); color: #fff; }
 
 /* 캘린더 뷰 */
 .cal-grid-wrap { display: flex; flex-direction: column; gap: 0; }
@@ -593,18 +597,18 @@ function formatDay(dateStr: string): string {
 .cal-dow { font-size: 11px; color: var(--color-text-secondary); font-weight: 600; }
 .cal-grid {
   display: grid; grid-template-columns: repeat(7, 1fr);
-  border-left: 1px solid var(--color-separator);
-  border-top: 1px solid var(--color-separator);
+  border-left: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 .cal-cell-admin {
-  border-right: 1px solid var(--color-separator);
-  border-bottom: 1px solid var(--color-separator);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   min-height: 72px; padding: 4px;
-  background: var(--color-card);
+  background: var(--color-surface);
 }
-.cal-cell-admin.empty { background: var(--color-background); }
+.cal-cell-admin.empty { background: var(--color-bg, var(--color-background)); }
 .cal-cell-admin.today .cal-day-num {
-  background: var(--color-primary); color: #fff;
+  background: var(--color-primary); color: var(--color-on-primary);
   border-radius: 50%; width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
 }

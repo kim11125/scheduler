@@ -47,21 +47,29 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 40px 32px;
+  gap: 18px;
+  padding: 48px 32px;
   text-align: center;
-}
-.icon { font-size: 60px; }
-h2 { font-size: 20px; font-weight: 700; color: var(--color-text); }
-p { font-size: 15px; color: var(--color-text-secondary); line-height: 1.7; }
-.btn-logout {
-  margin-top: 16px;
-  padding: 12px 32px;
-  border-radius: 10px;
   background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  margin: 24px;
+}
+.icon { font-size: 64px; }
+h2 { font-size: 20px; font-weight: 700; color: var(--color-text); }
+p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; }
+.btn-logout {
+  margin-top: 8px;
+  padding: 12px 36px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted, var(--color-surface));
   color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 600;
-  border: 1px solid var(--color-separator);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s;
 }
+.btn-logout:active { opacity: 0.8; }
 </style>

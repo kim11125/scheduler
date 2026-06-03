@@ -2,7 +2,7 @@ export type UserRole = 'ADMIN' | 'MANAGER' | 'USER'
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'DISABLED'
 export type Category = 'BASEBALL' | 'BASKETBALL' | 'SOCCER' | 'WOMENS_VOLLEYBALL' | 'MENS_VOLLEYBALL' | 'ETC'
 export type BaseballType = 'HOME' | 'AWAY'
-export type ThemeKey = 'light' | 'dark' | 'orange'
+export type ThemeKey = 'lavender' | 'peach' | 'mint' | 'dark' | 'rose-milk'
 export type ScheduleStatus = 'SCHEDULED' | 'CONFIRMED' | 'CHANGED' | 'CANCELLED'
 
 export interface User {

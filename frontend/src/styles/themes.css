@@ -1,89 +1,252 @@
-/* ── Light Theme (default) ───────────────────────── */
-[data-theme="light"] {
-  --color-primary:         #1976D2;
-  --color-primary-dark:    #1565C0;
-  --color-primary-light:   #E3F2FD;
-  --color-on-primary:      #FFFFFF;
-  --color-background:      #FFFFFF;
-  --color-surface:         #F4F7FC;
-  --color-text:            #1A1A1A;
-  --color-text-secondary:  #757575;
-  --color-separator:       #E0E0E0;
-  --color-status-bar:      #1565C0;
-  --color-card:            #FFFFFF;
-  --color-input-bg:        #F5F5F5;
-  --color-input-border:    #BDBDBD;
-  --color-btn:             #1976D2;
-  --color-btn-text:        #FFFFFF;
-  --color-overlay:         rgba(0,0,0,0.45);
-
-  --color-sunday:          #D32F2F;
-  --color-saturday:        #1565C0;
-
-  --shadow-card:  0 1px 4px rgba(0,0,0,0.10);
-  --shadow-modal: 0 8px 32px rgba(0,0,0,0.18);
-  --radius-card: 8px;
-}
-
-/* ── Dark Theme ──────────────────────────────────── */
-[data-theme="dark"] {
-  --color-primary:         #00CBA8;
-  --color-primary-dark:    #00A88A;
-  --color-primary-light:   rgba(0,203,168,0.18);
-  --color-on-primary:      #060E18;
-  --color-background:      #0C1929;
-  --color-surface:         #142235;
-  --color-text:            #E8F4FF;
-  --color-text-secondary:  #5A7A99;
-  --color-separator:       #1A3050;
-  --color-status-bar:      #060E18;
-  --color-card:            #142235;
-  --color-input-bg:        #1A3050;
-  --color-input-border:    #1E3A5A;
-  --color-btn:             #00CBA8;
-  --color-btn-text:        #060E18;
-  --color-overlay:         rgba(0,0,0,0.65);
-
-  --color-sunday:          #FF6B6B;
-  --color-saturday:        #74C0FC;
-
-  --shadow-card:  0 1px 6px rgba(0,0,0,0.40);
-  --shadow-modal: 0 8px 32px rgba(0,0,0,0.55);
-  --radius-card: 8px;
-}
-
-/* ── Orange Theme ────────────────────────────────── */
-[data-theme="orange"] {
-  --color-primary:         #F4511E;
-  --color-primary-dark:    #BF360C;
-  --color-primary-light:   #FBE9E7;
-  --color-on-primary:      #FFFFFF;
-  --color-background:      #F5F5F5;
-  --color-surface:         #FFFFFF;
-  --color-text:            #212121;
-  --color-text-secondary:  #616161;
-  --color-separator:       #E0E0E0;
-  --color-status-bar:      #BF360C;
-  --color-card:            #FFFFFF;
-  --color-input-bg:        #FAF0ED;
-  --color-input-border:    #FFCCBC;
-  --color-btn:             #F4511E;
-  --color-btn-text:        #FFFFFF;
-  --color-overlay:         rgba(0,0,0,0.45);
-
-  --color-sunday:          #D32F2F;
-  --color-saturday:        #1565C0;
-
-  --shadow-card:  0 1px 4px rgba(0,0,0,0.10);
-  --shadow-modal: 0 8px 32px rgba(0,0,0,0.18);
-  --radius-card: 8px;
-}
-
-/* ── Category dot colors (theme-independent) ─────── */
+/* ── Design Tokens ── */
 :root {
-  --color-dot-baseball:    #F44336;
-  --color-dot-basketball:  #FF9800;
-  --color-dot-soccer:      #4CAF50;
-  --color-dot-volleyball:  #9C27B0;
-  --color-dot-etc:         #607D8B;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+}
+
+/* ── Lavender (default/light) ── */
+[data-theme="lavender"] {
+  --color-primary:         #8B7FD4;
+  --color-primary-hover:   #7A6EC5;
+  --color-primary-soft:    #EDE9F8;
+  --color-primary-light:   #EDE9F8;
+  --color-primary-dark:    #7A6EC5;
+  --color-on-primary:      #FFFFFF;
+  --color-accent:          #C9A8E0;
+  --color-bg:              #FAFAF9;
+  --color-background:      #FAFAF9;
+  --color-surface:         #FFFFFF;
+  --color-surface-muted:   #F4F2F9;
+  --color-card:            #FFFFFF;
+  --color-header-bg:       #8B7FD4;
+  --color-header-text:     #FFFFFF;
+  --color-status-bar:      #8B7FD4;
+  --color-text-primary:    #2D2640;
+  --color-text:            #2D2640;
+  --color-text-secondary:  #8B85A0;
+  --color-border:          #E8E4F0;
+  --color-separator:       #E8E4F0;
+  --color-input-bg:        #FAFAF9;
+  --color-input-border:    #DDD9EB;
+  --color-input-focus:     #8B7FD4;
+  --color-btn:             #8B7FD4;
+  --color-btn-text:        #FFFFFF;
+  --color-success:         #5BAB8F;
+  --color-success-soft:    #E8F5EF;
+  --color-warning:         #E8A44A;
+  --color-warning-soft:    #FDF3E3;
+  --color-danger:          #E06B7A;
+  --color-danger-soft:     #FDEEF0;
+  --color-overlay:         rgba(45, 38, 64, 0.45);
+  --shadow-soft:           0 2px 12px rgba(139, 127, 212, 0.12);
+  --shadow-card:           0 1px 4px rgba(139, 127, 212, 0.08);
+  --shadow-modal:          0 8px 32px rgba(139, 127, 212, 0.18);
+  --radius-card:           12px;
+
+  --color-sunday:          #E06B7A;
+  --color-saturday:        #8B7FD4;
+
+  --color-dot-baseball:    #E06B7A;
+  --color-dot-basketball:  #E8A44A;
+  --color-dot-soccer:      #5BAB8F;
+  --color-dot-volleyball:  #8B7FD4;
+  --color-dot-etc:         #A0A8B5;
+}
+
+/* ── Peach (replaces orange) ── */
+[data-theme="peach"] {
+  --color-primary:         #E8836A;
+  --color-primary-hover:   #D9715A;
+  --color-primary-soft:    #FDEEE9;
+  --color-primary-light:   #FDEEE9;
+  --color-primary-dark:    #D9715A;
+  --color-on-primary:      #FFFFFF;
+  --color-accent:          #F4B8A4;
+  --color-bg:              #FFFAF8;
+  --color-background:      #FFFAF8;
+  --color-surface:         #FFFFFF;
+  --color-surface-muted:   #FDF5F2;
+  --color-card:            #FFFFFF;
+  --color-header-bg:       #E8836A;
+  --color-header-text:     #FFFFFF;
+  --color-status-bar:      #E8836A;
+  --color-text-primary:    #3D2A22;
+  --color-text:            #3D2A22;
+  --color-text-secondary:  #9E7B6E;
+  --color-border:          #F0E0D8;
+  --color-separator:       #F0E0D8;
+  --color-input-bg:        #FFFAF8;
+  --color-input-border:    #EDD8D0;
+  --color-input-focus:     #E8836A;
+  --color-btn:             #E8836A;
+  --color-btn-text:        #FFFFFF;
+  --color-success:         #5BAB8F;
+  --color-success-soft:    #E8F5EF;
+  --color-warning:         #D4A042;
+  --color-warning-soft:    #FDF3E3;
+  --color-danger:          #C85050;
+  --color-danger-soft:     #FDEAEA;
+  --color-overlay:         rgba(61, 42, 34, 0.45);
+  --shadow-soft:           0 2px 12px rgba(232, 131, 106, 0.12);
+  --shadow-card:           0 1px 4px rgba(232, 131, 106, 0.08);
+  --shadow-modal:          0 8px 32px rgba(232, 131, 106, 0.18);
+  --radius-card:           12px;
+
+  --color-sunday:          #C85050;
+  --color-saturday:        #E8836A;
+
+  --color-dot-baseball:    #E06B7A;
+  --color-dot-basketball:  #E8A44A;
+  --color-dot-soccer:      #5BAB8F;
+  --color-dot-volleyball:  #8B7FD4;
+  --color-dot-etc:         #A0A8B5;
+}
+
+/* ── Mint ── */
+[data-theme="mint"] {
+  --color-primary:         #4DB896;
+  --color-primary-hover:   #3DAA88;
+  --color-primary-soft:    #E6F7F3;
+  --color-primary-light:   #E6F7F3;
+  --color-primary-dark:    #3DAA88;
+  --color-on-primary:      #FFFFFF;
+  --color-accent:          #82D4BD;
+  --color-bg:              #F8FDFB;
+  --color-background:      #F8FDFB;
+  --color-surface:         #FFFFFF;
+  --color-surface-muted:   #F0FAF7;
+  --color-card:            #FFFFFF;
+  --color-header-bg:       #4DB896;
+  --color-header-text:     #FFFFFF;
+  --color-status-bar:      #4DB896;
+  --color-text-primary:    #1E3530;
+  --color-text:            #1E3530;
+  --color-text-secondary:  #7A9E96;
+  --color-border:          #D8EFE9;
+  --color-separator:       #D8EFE9;
+  --color-input-bg:        #F8FDFB;
+  --color-input-border:    #C8E8E0;
+  --color-input-focus:     #4DB896;
+  --color-btn:             #4DB896;
+  --color-btn-text:        #FFFFFF;
+  --color-success:         #3DAA88;
+  --color-success-soft:    #E6F7F3;
+  --color-warning:         #E8A44A;
+  --color-warning-soft:    #FDF3E3;
+  --color-danger:          #E06B7A;
+  --color-danger-soft:     #FDEEF0;
+  --color-overlay:         rgba(30, 53, 48, 0.45);
+  --shadow-soft:           0 2px 12px rgba(77, 184, 150, 0.12);
+  --shadow-card:           0 1px 4px rgba(77, 184, 150, 0.08);
+  --shadow-modal:          0 8px 32px rgba(77, 184, 150, 0.18);
+  --radius-card:           12px;
+
+  --color-sunday:          #E06B7A;
+  --color-saturday:        #4DB896;
+
+  --color-dot-baseball:    #E06B7A;
+  --color-dot-basketball:  #E8A44A;
+  --color-dot-soccer:      #5BAB8F;
+  --color-dot-volleyball:  #8B7FD4;
+  --color-dot-etc:         #A0A8B5;
+}
+
+/* ── Dark ── */
+[data-theme="dark"] {
+  --color-primary:         #A695F0;
+  --color-primary-hover:   #B8AAFF;
+  --color-primary-soft:    rgba(166, 149, 240, 0.15);
+  --color-primary-light:   rgba(166, 149, 240, 0.15);
+  --color-primary-dark:    #B8AAFF;
+  --color-on-primary:      #1A1825;
+  --color-accent:          #C9A8E0;
+  --color-bg:              #1A1825;
+  --color-background:      #1A1825;
+  --color-surface:         #25223A;
+  --color-surface-muted:   #2E2B42;
+  --color-card:            #25223A;
+  --color-header-bg:       #1A1825;
+  --color-header-text:     #E8E4F8;
+  --color-status-bar:      #1A1825;
+  --color-text-primary:    #E8E4F8;
+  --color-text:            #E8E4F8;
+  --color-text-secondary:  #8880A8;
+  --color-border:          #38345A;
+  --color-separator:       #38345A;
+  --color-input-bg:        #25223A;
+  --color-input-border:    #38345A;
+  --color-input-focus:     #A695F0;
+  --color-btn:             #A695F0;
+  --color-btn-text:        #1A1825;
+  --color-success:         #6BC4A0;
+  --color-success-soft:    rgba(107, 196, 160, 0.15);
+  --color-warning:         #F0B860;
+  --color-warning-soft:    rgba(240, 184, 96, 0.15);
+  --color-danger:          #F08090;
+  --color-danger-soft:     rgba(240, 128, 144, 0.15);
+  --color-overlay:         rgba(10, 8, 20, 0.65);
+  --shadow-soft:           0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-card:           0 1px 4px rgba(0, 0, 0, 0.2);
+  --shadow-modal:          0 8px 32px rgba(0, 0, 0, 0.55);
+  --radius-card:           12px;
+
+  --color-sunday:          #F08090;
+  --color-saturday:        #A695F0;
+
+  --color-dot-baseball:    #F08090;
+  --color-dot-basketball:  #F0B860;
+  --color-dot-soccer:      #6BC4A0;
+  --color-dot-volleyball:  #A695F0;
+  --color-dot-etc:         #8880A8;
+}
+
+/* ── Rose Milk ── */
+[data-theme="rose-milk"] {
+  --color-primary:         #D4789A;
+  --color-primary-hover:   #C4688A;
+  --color-primary-soft:    #FCEEF4;
+  --color-primary-light:   #FCEEF4;
+  --color-primary-dark:    #C4688A;
+  --color-on-primary:      #FFFFFF;
+  --color-accent:          #EEB8CE;
+  --color-bg:              #FFFBFD;
+  --color-background:      #FFFBFD;
+  --color-surface:         #FFFFFF;
+  --color-surface-muted:   #FDF4F8;
+  --color-card:            #FFFFFF;
+  --color-header-bg:       #D4789A;
+  --color-header-text:     #FFFFFF;
+  --color-status-bar:      #D4789A;
+  --color-text-primary:    #3D1E2E;
+  --color-text:            #3D1E2E;
+  --color-text-secondary:  #A07888;
+  --color-border:          #F0D8E4;
+  --color-separator:       #F0D8E4;
+  --color-input-bg:        #FFFBFD;
+  --color-input-border:    #EAD0DC;
+  --color-input-focus:     #D4789A;
+  --color-btn:             #D4789A;
+  --color-btn-text:        #FFFFFF;
+  --color-success:         #5BAB8F;
+  --color-success-soft:    #E8F5EF;
+  --color-warning:         #E8A44A;
+  --color-warning-soft:    #FDF3E3;
+  --color-danger:          #C85060;
+  --color-danger-soft:     #FDEAEA;
+  --color-overlay:         rgba(61, 30, 46, 0.45);
+  --shadow-soft:           0 2px 12px rgba(212, 120, 154, 0.12);
+  --shadow-card:           0 1px 4px rgba(212, 120, 154, 0.08);
+  --shadow-modal:          0 8px 32px rgba(212, 120, 154, 0.18);
+  --radius-card:           12px;
+
+  --color-sunday:          #C85060;
+  --color-saturday:        #D4789A;
+
+  --color-dot-baseball:    #E06B7A;
+  --color-dot-basketball:  #E8A44A;
+  --color-dot-soccer:      #5BAB8F;
+  --color-dot-volleyball:  #8B7FD4;
+  --color-dot-etc:         #A0A8B5;
 }

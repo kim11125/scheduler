@@ -131,58 +131,69 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background: var(--color-status-bar);
-  color: #fff;
+  padding: 0 16px;
+  height: 56px;
+  background: var(--color-header-bg, var(--color-status-bar));
+  color: var(--color-header-text, #fff);
+  flex-shrink: 0;
 }
 .back-btn {
-  font-size: 22px; color: #fff; padding: 0 4px;
+  font-size: 24px; color: var(--color-header-text, #fff); padding: 0 4px;
 }
 .reg-header h2 { font-size: 17px; font-weight: 700; }
-.reg-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-form { display: flex; flex-direction: column; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field-label { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); }
+.reg-body { padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
+form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.2px; }
 .field-input {
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 13px 16px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg);
   color: var(--color-text);
   font-size: 15px;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.field-input:focus { border-color: var(--color-primary); }
+.field-input:focus {
+  border-color: var(--color-input-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-soft, var(--color-primary-light));
+}
 
 /* 아이디 행 */
 .id-row { display: flex; gap: 8px; }
 .id-input { flex: 1; }
 .btn-check {
-  padding: 0 14px;
-  border-radius: 10px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
   background: var(--color-primary);
   color: var(--color-on-primary);
-  font-size: 13px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   flex-shrink: 0;
   white-space: nowrap;
   transition: opacity 0.2s;
+  border: none;
+  cursor: pointer;
 }
 .btn-check:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.err { font-size: 12px; color: #F44336; }
-.msg-ok { font-size: 12px; color: #2E7D32; }
-.msg-err { font-size: 12px; color: #F44336; }
+.err { font-size: 12px; color: var(--color-danger); }
+.msg-ok { font-size: 12px; color: var(--color-success); }
+.msg-err { font-size: 12px; color: var(--color-danger); }
 
 .btn-primary {
-  margin-top: 8px; padding: 14px; border-radius: 12px;
+  margin-top: 4px; padding: 15px; border-radius: var(--radius-pill);
   background: var(--color-btn); color: var(--color-btn-text);
   font-size: 16px; font-weight: 700; width: 100%;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: var(--shadow-soft);
 }
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
 .done-body {
   display: flex; flex-direction: column; align-items: center;
-  gap: 16px; padding: 60px 32px; text-align: center;
+  gap: 18px; padding: 60px 32px; text-align: center;
 }
-.done-icon { font-size: 56px; }
+.done-icon { font-size: 60px; }
 .done-body h3 { font-size: 20px; font-weight: 700; color: var(--color-text); }
 .done-body p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; }
 </style>

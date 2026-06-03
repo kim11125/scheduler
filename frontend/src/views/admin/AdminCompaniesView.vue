@@ -271,52 +271,56 @@ async function removeTeamFromCompany(teamId: number) {
 <style scoped>
 .admin-companies {
   min-height: 100vh;
-  background: var(--color-background);
+  background: var(--color-bg, var(--color-background));
   overflow-y: auto;
 }
 .admin-header {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; height: 52px;
-  background: var(--color-status-bar); color: #fff;
+  padding: 0 16px; height: 56px;
+  background: var(--color-header-bg, var(--color-status-bar));
+  color: var(--color-header-text, #fff);
 }
-.back-btn { font-size: 26px; color: #fff; width: 32px; }
+.back-btn { font-size: 26px; color: var(--color-header-text, #fff); width: 32px; }
 .admin-title { font-size: 17px; font-weight: 700; }
 .btn-add {
-  font-size: 13px; font-weight: 700; color: #fff;
-  padding: 6px 12px; border-radius: 10px;
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
+  font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.9);
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 .admin-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
 
 .search-wrap { display: flex; gap: 8px; }
 .search-input {
-  flex: 1; padding: 11px 14px; border-radius: 10px;
+  flex: 1; padding: 11px 14px; border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg); color: var(--color-text);
   font-size: 14px; outline: none;
 }
-.search-input:focus { border-color: var(--color-primary); }
+.search-input:focus { border-color: var(--color-input-focus); }
 
 .list-wrap { display: flex; flex-direction: column; gap: 8px; }
 .company-card {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background: var(--color-card);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-separator);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
   cursor: pointer; gap: 10px;
+  transition: opacity 0.15s;
 }
+.company-card:active { opacity: 0.8; }
 .company-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .company-logo {
-  width: 38px; height: 38px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0;
 }
 .company-logo-placeholder {
-  width: 38px; height: 38px; border-radius: 8px;
-  background: var(--color-primary); color: #fff;
+  width: 38px; height: 38px; border-radius: var(--radius-sm);
+  background: var(--color-primary-soft, var(--color-primary-light));
+  color: var(--color-primary);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; font-weight: 700; flex-shrink: 0;
 }
@@ -328,11 +332,11 @@ async function removeTeamFromCompany(teamId: number) {
 }
 .company-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .active-badge {
-  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 8px;
+  font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: var(--radius-pill);
 }
-.active-badge.active   { background: #E8F5E9; color: #2E7D32; }
-.active-badge.inactive { background: var(--color-surface); color: var(--color-text-secondary); }
-.card-arrow { font-size: 18px; color: var(--color-text-secondary); }
+.active-badge.active   { background: var(--color-success-soft); color: var(--color-success); }
+.active-badge.inactive { background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary); }
+.card-arrow { font-size: 18px; color: var(--color-border); }
 
 .empty-msg { text-align: center; padding: 32px; font-size: 14px; color: var(--color-text-secondary); }
 .empty-sm  { font-size: 13px; color: var(--color-text-secondary); padding: 8px 0; }
@@ -346,47 +350,48 @@ async function removeTeamFromCompany(teamId: number) {
 }
 .modal-sheet {
   width: 100%; max-width: 430px; max-height: 90vh;
-  background: var(--color-card);
-  border-radius: 20px 20px 0 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   overflow-y: auto;
+  box-shadow: var(--shadow-modal);
   animation: slideUp 0.25s ease;
 }
 .detail-sheet { max-height: 85vh; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .modal-handle {
-  width: 40px; height: 4px;
-  background: var(--color-separator); border-radius: 2px;
-  margin: 10px auto 0;
+  width: 32px; height: 4px;
+  background: var(--color-border); border-radius: var(--radius-pill);
+  margin: 12px auto 0;
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 20px 12px;
-  border-bottom: 1px solid var(--color-separator);
+  border-bottom: 1px solid var(--color-border);
 }
 .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--color-text); }
 .modal-close { font-size: 18px; color: var(--color-text-secondary); padding: 4px 8px; }
 
 .modal-form { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
 .form-field  { display: flex; flex-direction: column; gap: 6px; }
-.form-label  { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); }
-.required    { color: #F44336; }
+.form-label  { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
+.required    { color: var(--color-danger); }
 .form-input {
-  padding: 10px 13px; border-radius: 10px;
+  padding: 10px 13px; border-radius: var(--radius-md);
   border: 1.5px solid var(--color-input-border);
   background: var(--color-input-bg); color: var(--color-text);
   font-size: 14px; outline: none; width: 100%;
 }
-.form-input:focus { border-color: var(--color-primary); }
+.form-input:focus { border-color: var(--color-input-focus); }
 .form-textarea { resize: none; font-family: inherit; }
-.form-err { font-size: 12px; color: #F44336; }
+.form-err { font-size: 12px; color: var(--color-danger); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
 .btn-cancel {
-  padding: 10px 16px; border-radius: 10px;
-  background: var(--color-surface); color: var(--color-text-secondary);
-  font-size: 14px; font-weight: 600; border: 1px solid var(--color-separator);
+  padding: 10px 16px; border-radius: var(--radius-md);
+  background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary);
+  font-size: 14px; font-weight: 600; border: 1px solid var(--color-border);
 }
 .btn-save {
-  padding: 10px 22px; border-radius: 10px;
+  padding: 10px 22px; border-radius: var(--radius-md);
   background: var(--color-btn); color: var(--color-btn-text);
   font-size: 14px; font-weight: 700; transition: opacity 0.2s;
 }
@@ -399,41 +404,41 @@ async function removeTeamFromCompany(teamId: number) {
 .detail-section { display: flex; flex-direction: column; gap: 8px; }
 .detail-section-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
 .btn-sm {
-  padding: 6px 12px; border-radius: 8px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
   font-size: 12px; font-weight: 600; cursor: pointer;
 }
-.btn-edit     { background: var(--color-primary-light); color: var(--color-primary); }
-.btn-deactivate { background: #FFF3E0; color: #E65100; }
-.btn-activate   { background: #E8F5E9; color: #2E7D32; }
+.btn-edit     { background: var(--color-primary-soft, var(--color-primary-light)); color: var(--color-primary); }
+.btn-deactivate { background: var(--color-warning-soft); color: var(--color-warning); }
+.btn-activate   { background: var(--color-success-soft); color: var(--color-success); }
 .btn-add-team   {
   padding: 8px 14px; background: var(--color-primary);
   color: var(--color-on-primary); font-size: 13px; font-weight: 700;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 .btn-add-team:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .team-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .team-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border-radius: 16px;
-  background: var(--color-surface); color: var(--color-text);
+  padding: 5px 10px; border-radius: var(--radius-pill);
+  background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text);
   font-size: 12px; font-weight: 500;
-  border: 1px solid var(--color-separator);
+  border: 1px solid var(--color-border);
 }
 .chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .chip-remove {
   font-size: 11px; color: var(--color-text-secondary);
   padding: 0 2px; cursor: pointer; margin-left: 2px;
 }
-.chip-remove:hover { color: #F44336; }
+.chip-remove:hover { color: var(--color-danger); }
 
 .add-team-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
 .select-sm { flex: 1; padding: 8px 10px; font-size: 13px; }
 
 .user-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .user-chip {
-  padding: 4px 10px; border-radius: 14px;
-  background: var(--color-primary-light); color: var(--color-primary);
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  background: var(--color-primary-soft, var(--color-primary-light)); color: var(--color-primary);
   font-size: 12px; font-weight: 600;
 }
 </style>
