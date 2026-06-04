@@ -133,31 +133,47 @@ async function handleSubmit() {
   gap: 12px;
   padding: 0 16px;
   height: 56px;
-  background: var(--color-header-bg, var(--color-status-bar));
-  color: var(--color-header-text, #fff);
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .back-btn {
-  font-size: 24px; color: var(--color-header-text, #fff); padding: 0 4px;
+  font-size: 26px; color: var(--color-header-text); padding: 0 4px; line-height: 1;
 }
 .reg-header h2 { font-size: 17px; font-weight: 700; }
-.reg-body { padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
-form { display: flex; flex-direction: column; gap: 16px; }
+
+.reg-body {
+  padding: 20px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field-label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.2px; }
+.field-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.2px;
+}
 .field-input {
   padding: 13px 16px;
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
 }
 .field-input:focus {
-  border-color: var(--color-input-focus);
-  box-shadow: 0 0 0 3px var(--color-primary-soft, var(--color-primary-light));
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  background: var(--color-surface);
 }
 
 /* 아이디 행 */
@@ -165,9 +181,9 @@ form { display: flex; flex-direction: column; gap: 16px; }
 .id-input { flex: 1; }
 .btn-check {
   padding: 0 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--color-primary);
-  color: var(--color-on-primary);
+  color: var(--color-btn-text);
   font-size: 12px; font-weight: 700;
   flex-shrink: 0;
   white-space: nowrap;
@@ -175,25 +191,26 @@ form { display: flex; flex-direction: column; gap: 16px; }
   border: none;
   cursor: pointer;
 }
-.btn-check:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-check:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .err { font-size: 12px; color: var(--color-danger); }
-.msg-ok { font-size: 12px; color: var(--color-success); }
+.msg-ok { font-size: 12px; color: var(--color-success); font-weight: 600; }
 .msg-err { font-size: 12px; color: var(--color-danger); }
 
 .btn-primary {
-  margin-top: 4px; padding: 15px; border-radius: var(--radius-pill);
+  margin-top: 8px; padding: 15px; border-radius: var(--radius-pill);
   background: var(--color-btn); color: var(--color-btn-text);
-  font-size: 16px; font-weight: 700; width: 100%;
+  font-size: 15px; font-weight: 700; width: 100%;
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: var(--shadow-soft);
 }
 .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+
 .done-body {
   display: flex; flex-direction: column; align-items: center;
   gap: 18px; padding: 60px 32px; text-align: center;
 }
-.done-icon { font-size: 60px; }
-.done-body h3 { font-size: 20px; font-weight: 700; color: var(--color-text); }
+.done-icon { font-size: 64px; }
+.done-body h3 { font-size: 22px; font-weight: 700; color: var(--color-text-primary); }
 .done-body p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; }
 </style>

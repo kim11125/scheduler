@@ -1,260 +1,241 @@
 <template>
-  <div class="app-shell admin">
-    <!-- 헤더 -->
-    <header class="admin-header">
-      <span class="admin-title">⚙️ 관리자</span>
-      <div class="header-right">
-        <div class="theme-switcher">
-          <button
-            v-for="t in themes" :key="t.key"
-            class="theme-dot-btn" :class="{ active: themeStore.current === t.key }"
-            :style="{ '--dot-color': t.color }" :title="t.label"
-            @click="themeStore.setTheme(t.key)"
-          />
+  <div class="shell shell-nav">
+    <!-- Top bar -->
+    <header class="topbar">
+      <span class="topbar-title">⚙️ 관리자</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="theme-row">
+          <button v-for="t in themes" :key="t.key"
+            :class="['theme-dot-btn', { 'is-active': themeStore.current === t.key }]"
+            :style="{ '--dot-c': t.color }"
+            @click="themeStore.setTheme(t.key)" />
         </div>
-        <button class="my-schedule-btn" @click="router.push('/my-schedules')">📅 내 일정</button>
-        <button class="logout-btn" @click="handleLogout">
-          <span>{{ authStore.user?.name }}</span>
-          <span class="logout-label">로그아웃</span>
-        </button>
+        <button class="topbar-action" @click="router.push('/my-schedules')">📅 내 일정</button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃" style="font-size:15px">↩</button>
       </div>
     </header>
 
-    <div class="admin-body">
-
-      <!-- 요약 카드 -->
-      <div class="stat-row">
-        <div class="stat-card" :class="{ highlight: usersStore.pendingUsers.length > 0 }"
-             @click="scrollTo('pending')">
-          <span class="stat-num">{{ usersStore.pendingUsers.length }}</span>
-          <span class="stat-label">승인 대기</span>
-        </div>
-        <div class="stat-card" @click="statusFilter = 'ACTIVE'; scrollTo('users')">
-          <span class="stat-num">{{ activeCount }}</span>
-          <span class="stat-label">활성 사용자</span>
-        </div>
-        <div class="stat-card" @click="router.push('/admin/schedules')">
-          <span class="stat-num">{{ totalScheduleCount }}</span>
-          <span class="stat-label">전체 일정</span>
-        </div>
-      </div>
-
-      <!-- 빠른 메뉴 -->
-      <div class="quick-menu">
-        <button class="quick-btn" @click="router.push('/admin/companies')">
-          <span class="quick-icon">🏢</span>
-          <span class="quick-label">회사 관리</span>
-        </button>
-        <button class="quick-btn" @click="router.push('/admin/teams')">
-          <span class="quick-icon">⚽</span>
-          <span class="quick-label">팀 관리</span>
-        </button>
-        <button class="quick-btn" @click="router.push('/admin/schedules')">
-          <span class="quick-icon">📅</span>
-          <span class="quick-label">일정 관리</span>
-        </button>
-      </div>
-
-      <!-- 승인 대기 섹션 -->
-      <section class="section" ref="pendingRef">
-        <div class="section-header">
-          <h2 class="section-title">
-            승인 대기
-            <span v-if="usersStore.pendingUsers.length" class="badge-count">
-              {{ usersStore.pendingUsers.length }}
-            </span>
-          </h2>
-        </div>
-
-        <div v-if="usersStore.pendingUsers.length === 0" class="empty-msg">
-          대기 중인 가입 신청이 없습니다.
-        </div>
-
-        <div class="user-list" v-else>
-          <div
-            v-for="u in usersStore.pendingUsers" :key="u.id"
-            class="user-card pending"
-          >
-            <div class="user-info" @click="openUserModal(u)">
-              <div class="user-avatar" :style="{ background: avatarColor(u.name) }">
-                {{ u.name[0] }}
-              </div>
-              <div class="user-meta">
-                <span class="user-name">{{ u.name }}</span>
-                <span class="user-id">@{{ u.username }}</span>
-                <span class="user-date">등록일: {{ formatDate(u.createdAt) }}</span>
-              </div>
-            </div>
-            <div class="user-actions">
-              <button class="btn-approve" @click="handleApprove(u.id)">승인</button>
-              <button class="btn-reject"  @click="handleReject(u.id)">거절</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 전체 사용자 섹션 -->
-      <section class="section" ref="usersRef">
-        <div class="section-header">
-          <h2 class="section-title">전체 사용자</h2>
-          <div class="filter-tabs">
-            <button
-              v-for="f in STATUS_FILTERS" :key="f.value"
-              class="filter-tab" :class="{ active: statusFilter === f.value }"
-              @click="statusFilter = f.value"
-            >{{ f.label }}</button>
-          </div>
-        </div>
-
-        <div class="user-list">
-          <div
-            v-for="u in filteredUsers" :key="u.id"
-            class="user-card"
-            @click="openUserModal(u)"
-          >
-            <div class="user-info">
-              <div class="user-avatar" :style="{ background: avatarColor(u.name) }">
-                {{ u.name[0] }}
-              </div>
-              <div class="user-meta">
-                <span class="user-name">{{ u.name }}</span>
-                <span class="user-id">@{{ u.username }}</span>
-                <span class="status-badge" :class="u.status.toLowerCase()">
-                  {{ STATUS_LABELS[u.status] }}
-                </span>
-              </div>
-            </div>
-            <span class="card-arrow">›</span>
-          </div>
-
-          <div v-if="filteredUsers.length === 0" class="empty-msg">
-            해당하는 사용자가 없습니다.
-          </div>
-        </div>
-      </section>
-
-      <!-- 로그인 로그 (ADMIN만) -->
-      <section class="section" v-if="authStore.user?.role === 'ADMIN'">
-        <div class="section-header">
-          <h2 class="section-title">로그인 로그</h2>
-          <button class="filter-tab active" @click="fetchLogs">새로고침</button>
-        </div>
-        <div class="log-list">
-          <div v-if="logs.length === 0" class="empty-msg">로그가 없습니다.</div>
-          <div v-for="log in logs" :key="log.id" class="log-item">
-            <span class="log-action" :class="log.action === 'LOGIN' ? 'login' : 'logout'">
-              {{ log.action === 'LOGIN' ? '로그인' : '로그아웃' }}
-            </span>
-            <span class="log-user">{{ log.username }}</span>
-            <span class="log-ip">{{ log.ipAddress || '-' }}</span>
-            <span class="log-time">{{ formatLogDate(log.createdAt) }}</span>
-          </div>
-        </div>
-      </section>
-
+    <!-- Pending alert strip -->
+    <div v-if="usersStore.pendingUsers.length > 0" class="pending-alert" @click="scrollTo('pending')">
+      <span>🔔 승인 대기 {{ usersStore.pendingUsers.length }}명</span>
+      <span>›</span>
     </div>
 
-    <!-- 사용자 상세 모달 -->
+    <div class="dash-scroll">
+      <!-- Summary panel -->
+      <div class="section" style="margin-top:16px">
+        <div class="summary-panel">
+          <div class="summary-row">
+            <div class="summary-item" @click="scrollTo('pending')">
+              <span class="summary-num" :class="{ 'summary-num-alert': usersStore.pendingUsers.length > 0 }">{{ usersStore.pendingUsers.length }}</span>
+              <div class="summary-label">승인 대기</div>
+            </div>
+            <div class="summary-item" @click="router.push('/admin/users')">
+              <span class="summary-num">{{ activeCount }}</span>
+              <div class="summary-label">활성 사용자</div>
+            </div>
+            <div class="summary-item" @click="router.push('/admin/schedules')">
+              <span class="summary-num">{{ totalScheduleCount }}</span>
+              <div class="summary-label">전체 일정</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick menu -->
+      <div class="section" style="margin-top:20px">
+        <div class="section-title">빠른 메뉴</div>
+        <div class="row-list">
+          <div class="row-item" @click="router.push('/admin/users')">
+            <div class="row-icon">👥</div>
+            <div class="row-body"><div class="row-title">사용자 관리</div><div class="row-sub">가입 승인 · 계정 관리</div></div>
+            <span class="row-arrow">›</span>
+          </div>
+          <div class="row-item" @click="router.push('/admin/schedules')">
+            <div class="row-icon">📅</div>
+            <div class="row-body"><div class="row-title">전체 일정</div><div class="row-sub">모든 사용자 일정 조회</div></div>
+            <span class="row-arrow">›</span>
+          </div>
+          <div class="row-item" @click="router.push('/admin/companies')">
+            <div class="row-icon">🏢</div>
+            <div class="row-body"><div class="row-title">회사 관리</div><div class="row-sub">회사 추가 · 팀 연결</div></div>
+            <span class="row-arrow">›</span>
+          </div>
+          <div class="row-item" @click="router.push('/admin/teams')">
+            <div class="row-icon">⚽</div>
+            <div class="row-body"><div class="row-title">팀 관리</div><div class="row-sub">팀 추가 · 카테고리 설정</div></div>
+            <span class="row-arrow">›</span>
+          </div>
+          <div v-if="authStore.user?.role === 'ADMIN'" class="row-item" @click="scrollTo('logs')">
+            <div class="row-icon">📋</div>
+            <div class="row-body"><div class="row-title">로그인 로그</div><div class="row-sub">접속 기록 확인</div></div>
+            <span class="row-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending approvals -->
+      <div class="section" style="margin-top:20px" ref="pendingRef">
+        <div class="section-header">
+          <span class="section-title">승인 대기</span>
+          <span v-if="usersStore.pendingUsers.length" class="badge badge-pending">{{ usersStore.pendingUsers.length }}</span>
+        </div>
+        <div v-if="usersStore.pendingUsers.length === 0" class="empty" style="padding:24px">
+          <span class="empty-icon">✅</span>
+          <p class="empty-text">대기 중인 가입 신청이 없습니다</p>
+        </div>
+        <div v-else class="row-list">
+          <div v-for="u in usersStore.pendingUsers" :key="u.id" class="row-item" style="cursor:default">
+            <div class="avatar avatar-sm" :style="{ background: avatarColor(u.name) }">{{ u.name[0] }}</div>
+            <div class="row-body">
+              <div class="row-title">{{ u.name }}</div>
+              <div class="row-sub">@{{ u.username }} · {{ formatDate(u.createdAt) }}</div>
+            </div>
+            <div class="row-right">
+              <button class="btn btn-xs btn-primary" @click="handleApprove(u.id)">승인</button>
+              <button class="btn btn-xs btn-danger" @click="handleReject(u.id)">거절</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent users -->
+      <div class="section" style="margin-top:20px">
+        <div class="section-header">
+          <span class="section-title">최근 사용자</span>
+          <button class="see-all" @click="router.push('/admin/users')">전체 보기</button>
+        </div>
+        <div class="row-list">
+          <div v-for="u in recentUsers" :key="u.id" class="row-item" @click="openUserModal(u)">
+            <div class="avatar avatar-sm" :style="{ background: avatarColor(u.name) }">{{ u.name[0] }}</div>
+            <div class="row-body">
+              <div class="row-title">{{ u.name }}</div>
+              <div class="row-sub">@{{ u.username }}</div>
+            </div>
+            <span :class="['badge', `badge-${u.status.toLowerCase()}`]">{{ STATUS_LABELS[u.status] }}</span>
+          </div>
+          <div v-if="recentUsers.length === 0" class="empty" style="padding:24px">
+            <p class="empty-text">사용자가 없습니다</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login logs (ADMIN only) -->
+      <div class="section" style="margin-top:20px" ref="logsRef" v-if="authStore.user?.role === 'ADMIN'">
+        <div class="section-header">
+          <span class="section-title">로그인 로그</span>
+          <button class="see-all" @click="fetchLogs">새로고침</button>
+        </div>
+        <div class="row-list">
+          <div v-if="logs.length === 0" class="empty" style="padding:24px"><p class="empty-text">로그가 없습니다</p></div>
+          <div v-for="log in logs" :key="log.id" class="log-row">
+            <span class="log-action" :class="log.action === 'LOGIN' ? 'log-in' : 'log-out'">{{ log.action === 'LOGIN' ? '로그인' : '로그아웃' }}</span>
+            <span class="log-user">{{ log.username }}</span>
+            <span class="log-meta">{{ log.ipAddress || '-' }}</span>
+            <span class="log-meta">{{ formatLogDate(log.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+    </div>
+
+    <!-- User detail sheet -->
     <Teleport to="body">
-      <div class="modal-overlay" v-if="selectedUser" @click.self="closeUserModal">
-        <div class="modal-sheet">
-          <div class="modal-handle"></div>
-          <div class="modal-header">
-            <h3>사용자 정보</h3>
-            <button class="modal-close" @click="closeUserModal">✕</button>
+      <div class="overlay" v-if="selectedUser" @click.self="closeUserModal">
+        <div class="sheet sheet-full">
+          <div class="sheet-handle"></div>
+          <div class="sheet-header">
+            <span class="sheet-title">사용자 정보</span>
+            <button class="sheet-close" @click="closeUserModal">✕</button>
           </div>
-
-          <div class="user-profile">
-            <div class="profile-avatar" :style="{ background: avatarColor(selectedUser.name) }">
-              {{ selectedUser.name[0] }}
+          <div class="sheet-body">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+              <div class="avatar avatar-lg" :style="{ background: avatarColor(selectedUser.name) }">{{ selectedUser.name[0] }}</div>
+              <div>
+                <div style="font-size:17px;font-weight:700;color:var(--color-text-1)">{{ selectedUser.name }}</div>
+                <div style="font-size:13px;color:var(--color-text-2)">@{{ selectedUser.username }}</div>
+                <span :class="['badge', `badge-${selectedUser.status.toLowerCase()}`]" style="margin-top:4px">{{ STATUS_LABELS[selectedUser.status] }}</span>
+              </div>
             </div>
-            <div class="profile-info">
-              <span class="profile-name">{{ selectedUser.name }}</span>
-              <span class="profile-id">@{{ selectedUser.username }}</span>
-              <span class="status-badge" :class="selectedUser.status.toLowerCase()">
-                {{ STATUS_LABELS[selectedUser.status] }}
-              </span>
-            </div>
-          </div>
-
-          <div class="profile-detail">
-            <div class="detail-row"><span class="detail-label">등록일</span><span>{{ formatDate(selectedUser.createdAt) }}</span></div>
-            <div class="detail-row">
-              <span class="detail-label">역할</span>
-              <!-- ADMIN만 역할 변경 가능 -->
-              <select v-if="authStore.user?.role === 'ADMIN'" class="role-select"
+            <div class="divider-sm"></div>
+            <div class="detail-row-item"><span class="detail-key">등록일</span><span class="detail-val">{{ formatDate(selectedUser.createdAt) }}</span></div>
+            <div class="detail-row-item">
+              <span class="detail-key">역할</span>
+              <select v-if="authStore.user?.role === 'ADMIN'" class="field-input field-select" style="height:34px;font-size:13px;flex:1;max-width:160px"
                 :value="selectedUser.role"
                 @change="handleRoleChange(selectedUser.id, ($event.target as HTMLSelectElement).value)">
                 <option value="USER">일반 사용자</option>
                 <option value="MANAGER">일반 관리자</option>
                 <option value="ADMIN">최고 관리자</option>
               </select>
-              <span v-else>{{ ROLE_LABELS[selectedUser.role] || selectedUser.role }}</span>
+              <span v-else class="detail-val">{{ ROLE_LABELS[selectedUser.role] || selectedUser.role }}</span>
             </div>
-          </div>
+            <div class="divider-sm"></div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+              <button v-if="selectedUser.status === 'PENDING'" class="btn btn-primary btn-sm" @click="handleApprove(selectedUser.id)">승인</button>
+              <button v-if="selectedUser.status === 'PENDING'" class="btn btn-danger btn-sm" @click="handleReject(selectedUser.id)">거절</button>
+              <button v-if="selectedUser.status === 'ACTIVE'" class="btn btn-secondary btn-sm" @click="usersStore.disable(selectedUser.id)">비활성화</button>
+              <button v-if="selectedUser.status === 'DISABLED'" class="btn btn-primary btn-sm" @click="usersStore.activate(selectedUser.id)">재활성화</button>
+              <button v-if="selectedUser.status === 'REJECTED'" class="btn btn-primary btn-sm" @click="usersStore.activate(selectedUser.id)">승인</button>
+              <button v-if="selectedUser.status === 'ACTIVE'" class="btn btn-outline btn-sm" @click="goToUserSchedules(selectedUser.id, selectedUser.name)">일정 보기</button>
+            </div>
+            <div class="divider-sm"></div>
 
-          <!-- 상태 변경 버튼 -->
-          <div class="modal-actions-row">
-            <button v-if="selectedUser.status === 'PENDING'"   class="btn-approve" @click="handleApprove(selectedUser.id)">승인</button>
-            <button v-if="selectedUser.status === 'PENDING'"   class="btn-reject"  @click="handleReject(selectedUser.id)">거절</button>
-            <button v-if="selectedUser.status === 'ACTIVE'"    class="btn-sm btn-disable"  @click="usersStore.disable(selectedUser.id)">비활성화</button>
-            <button v-if="selectedUser.status === 'DISABLED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">재활성화</button>
-            <button v-if="selectedUser.status === 'REJECTED'"  class="btn-sm btn-activate" @click="usersStore.activate(selectedUser.id)">승인</button>
-            <button v-if="selectedUser.status === 'ACTIVE'" class="btn-sm btn-schedule"
-              @click="goToUserSchedules(selectedUser.id, selectedUser.name)">일정 보기</button>
-          </div>
+            <!-- 소속 회사 -->
+            <div class="field" style="margin-bottom:12px">
+              <span class="field-label">소속 회사</span>
+              <div v-if="userCompanies.length > 0" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                <span v-for="uc in userCompanies" :key="uc.companyId" class="chip active" style="gap:6px">
+                  {{ uc.companyName }}
+                  <button @click="removeCompany(uc.companyId)" style="font-size:10px;color:inherit;opacity:0.7">✕</button>
+                </span>
+              </div>
+              <div v-else style="font-size:13px;color:var(--color-text-3);margin-top:4px">없음</div>
+              <div v-if="availableCompanies.length > 0" style="display:flex;gap:8px;margin-top:8px">
+                <select v-model="addCompanyId" class="field-input field-select" style="height:36px;font-size:13px;flex:1">
+                  <option :value="null">회사 선택...</option>
+                  <option v-for="c in availableCompanies" :key="c.id" :value="c.id">{{ c.name }}</option>
+                </select>
+                <button class="btn btn-primary btn-sm" :disabled="!addCompanyId" @click="addCompany">등록</button>
+              </div>
+            </div>
+            <div class="divider-sm"></div>
 
-          <!-- 소속 회사 (1:1) -->
-          <div class="relation-section">
-            <h4 class="relation-title">소속 회사</h4>
-            <div v-if="userCompanies.length > 0" class="relation-chips">
-              <span v-for="uc in userCompanies" :key="uc.companyId" class="relation-chip primary">
-                {{ uc.companyName }}
-                <button class="chip-remove" @click="removeCompany(uc.companyId)">✕</button>
-              </span>
+            <!-- 소속 팀 -->
+            <div class="field" style="margin-bottom:12px">
+              <span class="field-label">소속 팀</span>
+              <div v-if="userTeams.length > 0" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                <span v-for="ut in userTeams" :key="ut.teamId" class="chip" :class="{ active: ut.isPrimary }" style="gap:6px">
+                  {{ ut.teamName }}
+                  <span v-if="ut.isPrimary" style="font-size:10px">(대표)</span>
+                  <button v-if="!ut.isPrimary" @click="setPrimaryTeam(ut.teamId)" style="font-size:10px;color:var(--color-primary)">대표</button>
+                  <button @click="removeTeam(ut.teamId)" style="font-size:10px;opacity:0.7">✕</button>
+                </span>
+              </div>
+              <div v-else style="font-size:13px;color:var(--color-text-3);margin-top:4px">없음</div>
+              <div v-if="availableTeams.length > 0" style="display:flex;gap:8px;margin-top:8px">
+                <select v-model="addTeamId" class="field-input field-select" style="height:36px;font-size:13px;flex:1">
+                  <option :value="null">팀 선택...</option>
+                  <option v-for="t in availableTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+                </select>
+                <button class="btn btn-primary btn-sm" :disabled="!addTeamId" @click="addTeam">추가</button>
+              </div>
             </div>
-            <div v-else class="relation-add-row">
-              <select v-model="addCompanyId" class="relation-select">
-                <option :value="null">회사 선택...</option>
-                <option v-for="c in availableCompanies" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-              <button class="btn-sm btn-add-rel" :disabled="!addCompanyId" @click="addCompany">등록</button>
-            </div>
-          </div>
+            <div class="divider-sm"></div>
 
-          <!-- 소속 팀 -->
-          <div class="relation-section">
-            <h4 class="relation-title">소속 팀</h4>
-            <div class="relation-chips">
-              <span v-for="ut in userTeams" :key="ut.teamId" class="relation-chip"
-                :class="{ primary: ut.isPrimary }">
-                {{ ut.teamName }}
-                <span v-if="ut.isPrimary" class="chip-primary-badge">대표</span>
-                <button v-if="!ut.isPrimary" class="chip-action" @click="setPrimaryTeam(ut.teamId)">대표설정</button>
-                <button class="chip-remove" @click="removeTeam(ut.teamId)">✕</button>
-              </span>
-              <span v-if="userTeams.length === 0" class="empty-sm">없음</span>
-            </div>
-            <div class="relation-add-row">
-              <select v-model="addTeamId" class="relation-select">
-                <option :value="null">팀 선택...</option>
-                <option v-for="t in availableTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
-              <button class="btn-sm btn-add-rel" :disabled="!addTeamId" @click="addTeam">추가</button>
-            </div>
-          </div>
-
-          <!-- 비밀번호 변경 -->
-          <div class="pw-section">
-            <h4 class="pw-title">비밀번호 변경</h4>
-            <input v-model="newPw" type="password" class="pw-input" placeholder="새 비밀번호 입력" />
-            <input v-model="newPwConfirm" type="password" class="pw-input" placeholder="새 비밀번호 확인" />
-            <p v-if="pwError" class="pw-error">{{ pwError }}</p>
-            <button class="btn-pw-save" @click="handleAdminPwChange">변경</button>
+            <!-- 비밀번호 변경 -->
+            <div class="field"><span class="field-label">비밀번호 변경</span></div>
+            <div class="field" style="margin-top:8px"><input v-model="newPw" type="password" class="field-input" placeholder="새 비밀번호 입력" /></div>
+            <div class="field" style="margin-top:8px"><input v-model="newPwConfirm" type="password" class="field-input" placeholder="새 비밀번호 확인" /></div>
+            <p v-if="pwError" class="field-err" style="margin-top:4px">{{ pwError }}</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:10px" @click="handleAdminPwChange">변경</button>
           </div>
         </div>
       </div>
     </Teleport>
+
+    <BottomNavAdmin />
   </div>
 </template>
 
@@ -269,6 +250,7 @@ import { companyApi } from '@/api/company'
 import { teamApi } from '@/api/team'
 import type { ThemeKey, UserStatus } from '@/types'
 import type { ManagedUser } from '@/stores/users'
+import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -277,19 +259,19 @@ const usersStore = useUsersStore()
 const totalScheduleCount = ref(0)
 
 const pendingRef = ref<HTMLElement | null>(null)
-const usersRef  = ref<HTMLElement | null>(null)
+const logsRef   = ref<HTMLElement | null>(null)
 
-function scrollTo(target: 'pending' | 'users') {
-  const el = target === 'pending' ? pendingRef.value : usersRef.value
+function scrollTo(target: 'pending' | 'logs') {
+  const el = target === 'pending' ? pendingRef.value : logsRef.value
   el?.scrollIntoView({ behavior: 'smooth' })
 }
 
 const themes: { key: ThemeKey; color: string; label: string }[] = [
-  { key: 'lavender',   color: '#8B7FD4', label: '라벤더' },
-  { key: 'peach',      color: '#E8836A', label: '피치' },
-  { key: 'mint',       color: '#4DB896', label: '민트' },
-  { key: 'dark',       color: '#A695F0', label: '다크' },
-  { key: 'rose-milk',  color: '#D4789A', label: '로즈' },
+  { key: 'lavender',  color: '#8B7FD4', label: '라벤더' },
+  { key: 'peach',     color: '#E8836A', label: '피치' },
+  { key: 'mint',      color: '#4DB896', label: '민트' },
+  { key: 'dark',      color: '#A695F0', label: '다크' },
+  { key: 'rose-milk', color: '#D4789A', label: '로즈' },
 ]
 
 const STATUS_FILTERS: { value: UserStatus | 'ALL'; label: string }[] = [
@@ -313,10 +295,7 @@ const activeCount = computed(() =>
   usersStore.allUsers.filter(u => u.status === 'ACTIVE').length
 )
 
-const filteredUsers = computed(() => {
-  if (statusFilter.value === 'ALL') return usersStore.allUsers
-  return usersStore.allUsers.filter(u => u.status === statusFilter.value)
-})
+const recentUsers = computed(() => usersStore.allUsers.slice(0, 5))
 
 // 사용자 모달
 const selectedUser = ref<ManagedUser | null>(null)
@@ -369,13 +348,6 @@ async function removeCompany(companyId: number) {
     await adminApi.removeUserCompany(selectedUser.value.id, companyId)
     await loadUserRelations(selectedUser.value.id)
   } catch (e: any) { alert(e.response?.data?.message || '해제 실패') }
-}
-async function setPrimaryCompany(companyId: number) {
-  if (!selectedUser.value) return
-  try {
-    await adminApi.setPrimaryUserCompany(selectedUser.value.id, companyId)
-    await loadUserRelations(selectedUser.value.id)
-  } catch (e: any) { alert(e.response?.data?.message || '설정 실패') }
 }
 async function addTeam() {
   if (!addTeamId.value || !selectedUser.value) return
@@ -464,13 +436,7 @@ function avatarColor(name: string): string {
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mi = String(d.getMinutes()).padStart(2, '0')
-  const ss = String(d.getSeconds()).padStart(2, '0')
-  return `${yyyy}.${mm}.${dd} ${hh}:${mi}:${ss}`
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
 }
 
 const logs = ref<any[]>([])
@@ -500,309 +466,18 @@ function handleLogout() {
 </script>
 
 <style scoped>
-.admin {
-  min-height: 100vh;
-  background: var(--color-bg, var(--color-background));
-  overflow-y: auto;
-}
-
-.admin-header {
-  position: sticky; top: 0; z-index: 50;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; height: 56px;
-  background: var(--color-header-bg, var(--color-status-bar));
-  color: var(--color-header-text, #fff);
-}
-.admin-title { font-size: 17px; font-weight: 700; }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.theme-switcher { display: flex; gap: 5px; align-items: center; }
-.theme-dot-btn {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--dot-color);
-  border: 2px solid rgba(255,255,255,0.3);
-  cursor: pointer; transition: border-color 0.2s, transform 0.2s;
-}
-.theme-dot-btn.active { border-color: #fff; transform: scale(1.3); }
-.my-schedule-btn {
-  font-size: 12px; color: rgba(255,255,255,0.9);
-  padding: 5px 10px; border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  cursor: pointer; font-weight: 600;
-}
-.logout-btn {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 12px; color: rgba(255,255,255,0.9);
-  padding: 5px 12px; border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-  font-weight: 600; cursor: pointer;
-}
-.logout-label { font-size: 12px; }
-
-.admin-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
-
-/* 빠른 메뉴 */
-.quick-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.quick-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 14px 8px; border-radius: var(--radius-md);
-  background: var(--color-surface); border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card); cursor: pointer; transition: transform 0.1s;
-}
-.quick-btn:active { transform: scale(0.96); }
-.quick-icon { font-size: 22px; }
-.quick-label { font-size: 12px; font-weight: 600; color: var(--color-text); }
-
-/* 요약 카드 */
-.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.stat-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 14px 10px;
-  text-align: center;
-  box-shadow: var(--shadow-card);
-  display: flex; flex-direction: column; gap: 4px;
-  cursor: pointer; transition: transform 0.1s;
-}
-.stat-card:active { transform: scale(0.97); }
-.stat-card.highlight {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft, var(--color-primary-light));
-}
-.stat-num { font-size: 22px; font-weight: 700; color: var(--color-primary); }
-.stat-label { font-size: 11px; color: var(--color-text-secondary); }
-
-/* 섹션 */
-.section { display: flex; flex-direction: column; gap: 10px; }
-.section-header {
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
-.section-title {
-  font-size: 15px; font-weight: 700; color: var(--color-text);
-  display: flex; align-items: center; gap: 6px;
-}
-.badge-count {
-  background: var(--color-primary); color: var(--color-btn-text, #fff);
-  font-size: 11px; font-weight: 700;
-  padding: 2px 8px; border-radius: var(--radius-pill);
-}
-
-/* 필터 탭 */
-.filter-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-.filter-tab {
-  font-size: 12px; padding: 4px 12px; border-radius: var(--radius-pill);
-  background: var(--color-surface); color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  cursor: pointer; transition: all 0.15s;
-}
-.filter-tab.active {
-  background: var(--color-primary); color: var(--color-on-primary);
-  border-color: var(--color-primary);
-}
-
-/* 유저 카드 */
-.user-list { display: flex; flex-direction: column; gap: 8px; }
-.user-card {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
-  gap: 10px; cursor: pointer;
-  transition: opacity 0.15s;
-}
-.user-card:active { opacity: 0.8; }
-.user-card.pending { border-left: 3px solid var(--color-primary); }
-.card-arrow { font-size: 18px; color: var(--color-border); }
-
-.user-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.user-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 15px; font-weight: 700; flex-shrink: 0;
-}
-.user-meta {
-  display: flex; flex-direction: column; gap: 2px; min-width: 0;
-}
-.user-name { font-size: 14px; font-weight: 600; color: var(--color-text); }
-.user-id   { font-size: 12px; color: var(--color-text-secondary); }
-.user-date { font-size: 11px; color: var(--color-text-secondary); }
-
-/* 상태 배지 */
-.status-badge {
-  display: inline-block;
-  font-size: 11px; font-weight: 600;
-  padding: 2px 9px; border-radius: var(--radius-pill);
-  width: fit-content;
-}
-.status-badge.active   { background: var(--color-success-soft); color: var(--color-success); }
-.status-badge.pending  { background: var(--color-warning-soft); color: var(--color-warning); }
-.status-badge.rejected { background: var(--color-danger-soft); color: var(--color-danger); }
-.status-badge.disabled { background: var(--color-surface-muted, var(--color-surface)); color: var(--color-text-secondary); }
-
-/* 버튼 */
-.user-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-.btn-approve {
-  padding: 7px 14px; border-radius: var(--radius-md);
-  background: var(--color-primary); color: var(--color-on-primary);
-  font-size: 13px; font-weight: 700; cursor: pointer;
-}
-.btn-reject {
-  padding: 7px 14px; border-radius: var(--radius-md);
-  background: var(--color-danger-soft); color: var(--color-danger);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-}
-.btn-sm {
-  padding: 5px 12px; border-radius: var(--radius-pill);
-  font-size: 12px; font-weight: 600; cursor: pointer;
-}
-.btn-disable  { background: var(--color-warning-soft); color: var(--color-warning); }
-.btn-activate { background: var(--color-success-soft); color: var(--color-success); }
-.btn-schedule { background: var(--color-primary-soft, var(--color-primary-light)); color: var(--color-primary); }
-.btn-profile  { background: var(--color-primary-soft, var(--color-primary-light)); color: var(--color-primary); }
-
-.empty-msg {
-  text-align: center; padding: 24px;
-  font-size: 14px; color: var(--color-text-secondary);
-}
-
-/* 모달 */
-.modal-overlay {
-  position: fixed; inset: 0; background: var(--color-overlay); z-index: 200;
-  display: flex; align-items: flex-end; justify-content: center;
-}
-.modal-sheet {
-  width: 100%; max-width: 430px; margin: 0 auto;
-  background: var(--color-surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 12px 20px 40px;
-  max-height: 85vh; overflow-y: auto;
-  box-shadow: var(--shadow-modal);
-  animation: slideUp 0.25s ease;
-}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-handle {
-  width: 32px; height: 4px; border-radius: var(--radius-pill);
-  background: var(--color-border); margin: 0 auto 14px;
-}
-.modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-}
-.modal-header h3 { font-size: 16px; font-weight: 700; }
-.modal-close { font-size: 18px; color: var(--color-text-secondary); cursor: pointer; }
-
-.user-profile {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 0; border-bottom: 1px solid var(--color-border);
-  margin-bottom: 12px;
-}
-.profile-avatar {
-  width: 54px; height: 54px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 22px; font-weight: 700; flex-shrink: 0;
-}
-.profile-info { display: flex; flex-direction: column; gap: 4px; }
-.profile-name { font-size: 17px; font-weight: 700; }
-.profile-id { font-size: 13px; color: var(--color-text-secondary); }
-
-.profile-detail {
-  display: flex; flex-direction: column; gap: 8px;
-  margin-bottom: 14px;
-}
-.detail-row {
-  display: flex; justify-content: space-between;
-  font-size: 13px; color: var(--color-text);
-}
-.detail-label { color: var(--color-text-secondary); }
-.role-select {
-  font-size: 13px; padding: 3px 8px; border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-input-bg); color: var(--color-text);
-}
-.label-optional { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
-
-/* 회사/팀 관계 */
-.relation-section { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--color-border); }
-.relation-title { font-size: 13px; font-weight: 700; color: var(--color-text); }
-.relation-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.relation-chip {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 10px; border-radius: var(--radius-pill);
-  background: var(--color-surface-muted, var(--color-surface)); border: 1px solid var(--color-border);
-  font-size: 12px; color: var(--color-text);
-}
-.relation-chip.primary {
-  background: var(--color-primary-soft, var(--color-primary-light));
-  border-color: var(--color-primary); color: var(--color-primary);
-}
-.chip-primary-badge {
-  font-size: 10px; font-weight: 700;
-  background: var(--color-primary); color: var(--color-btn-text, #fff);
-  padding: 1px 6px; border-radius: var(--radius-pill);
-}
-.chip-action {
-  font-size: 10px; color: var(--color-primary); cursor: pointer; padding: 0 2px;
-}
-.chip-remove {
-  font-size: 11px; color: var(--color-text-secondary); cursor: pointer; padding: 0 2px;
-}
-.chip-remove:hover { color: var(--color-danger); }
-.empty-sm { font-size: 12px; color: var(--color-text-secondary); }
-.relation-add-row { display: flex; gap: 8px; align-items: center; }
-.relation-select {
-  flex: 1; padding: 7px 10px; border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-input-bg); color: var(--color-text); font-size: 13px;
-}
-.btn-add-rel {
-  background: var(--color-primary); color: var(--color-on-primary);
-  padding: 7px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 700;
-}
-.btn-add-rel:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* 로그 */
-.log-list { display: flex; flex-direction: column; gap: 6px; }
-.log-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  font-size: 12px;
-}
-.log-action {
-  font-weight: 700; padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; flex-shrink: 0;
-}
-.log-action.login  { background: var(--color-success-soft); color: var(--color-success); }
-.log-action.logout { background: var(--color-warning-soft); color: var(--color-warning); }
-.log-user { font-weight: 600; color: var(--color-text); flex: 1; }
-.log-ip   { color: var(--color-text-secondary); font-size: 11px; }
-.log-time { color: var(--color-text-secondary); font-size: 11px; flex-shrink: 0; }
-
-.modal-actions-row {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  padding: 12px 0; border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 16px;
-}
-
-/* 비밀번호 변경 */
-.pw-section { display: flex; flex-direction: column; gap: 10px; }
-.pw-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
-.pw-input {
-  padding: 10px 12px; border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  color: var(--color-text); font-size: 14px; outline: none; width: 100%;
-}
-.pw-input:focus { border-color: var(--color-input-focus); }
-.pw-error { font-size: 12px; color: var(--color-danger); }
-.btn-pw-save {
-  padding: 10px; border-radius: var(--radius-md);
-  background: var(--color-primary); color: var(--color-on-primary);
-  font-size: 14px; font-weight: 700; cursor: pointer;
-}
+.dash-scroll { flex:1; overflow-y:auto; }
+.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.see-all { font-size:12px; font-weight:600; color:var(--color-primary); background:none; border:none; cursor:pointer; }
+.pending-alert { background:var(--color-danger-bg); color:var(--color-danger); font-size:13px; font-weight:600; padding:10px 16px; display:flex; justify-content:space-between; cursor:pointer; }
+.detail-row-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--color-border); }
+.detail-key { font-size:13px; color:var(--color-text-2); }
+.detail-val { font-size:13px; color:var(--color-text-1); font-weight:500; }
+.log-row { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--color-border); font-size:12px; }
+.log-row:last-child { border-bottom:none; }
+.log-action { padding:2px 8px; border-radius:var(--radius-pill); font-weight:600; flex-shrink:0; }
+.log-in  { background:var(--color-active-bg); color:var(--color-active); }
+.log-out { background:var(--color-surface-2); color:var(--color-text-2); }
+.log-user { font-weight:600; color:var(--color-text-1); flex-shrink:0; }
+.log-meta { color:var(--color-text-3); flex-shrink:0; }
 </style>

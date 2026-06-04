@@ -10,6 +10,9 @@ const router = createRouter({
     { path: '/',            name: 'home',         component: () => import('@/views/HomeView.vue') },
     { path: '/my-schedules', name: 'my-schedules', component: () => import('@/views/HomeView.vue') },
     { path: '/my-profile',   name: 'my-profile',   component: () => import('@/views/MyProfileView.vue') },
+    { path: '/calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
+    { path: '/schedules', name: 'my-schedules-page', component: () => import('@/views/MySchedulesView.vue') },
+    { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue') },
     {
       path: '/admin',
       name: 'admin',
@@ -35,6 +38,8 @@ const router = createRouter({
       name: 'admin-user-detail',
       component: () => import('@/views/admin/AdminUserDetailView.vue'),
     },
+    { path: '/admin/users', name: 'admin-users', component: () => import('@/views/admin/AdminUsersView.vue') },
+    { path: '/admin/management', name: 'admin-management', component: () => import('@/views/admin/AdminManagementView.vue') },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
@@ -69,6 +74,18 @@ router.beforeEach((to) => {
   // 내 일정, 내 프로필: 관리자도 접근 가능
   if (to.name === 'my-schedules' || to.name === 'my-profile') {
     if (status !== 'ACTIVE') return '/pending'
+    return true
+  }
+
+  // 새 사용자 페이지들: ACTIVE 사용자 접근 가능
+  if (to.name === 'calendar' || to.name === 'my-schedules-page' || to.name === 'profile') {
+    if (status !== 'ACTIVE') return '/pending'
+    return true
+  }
+
+  // 관리자 전용 신규 라우트
+  if (to.name === 'admin-users' || to.name === 'admin-management') {
+    if (!isAdmin || status !== 'ACTIVE') return '/'
     return true
   }
 

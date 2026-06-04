@@ -11,44 +11,47 @@
     <div class="login-body">
       <!-- Logo area -->
       <div class="logo-area">
-        <div class="logo-icon">📅</div>
+        <span class="logo-icon">📅</span>
         <h1 class="logo-title">스케줄 관리</h1>
         <p class="logo-sub">나만의 경기 일정을 기록하세요</p>
       </div>
 
-      <!-- Form -->
-      <form class="login-form" @submit.prevent="handleLogin">
-        <div class="field">
-          <label class="field-label">아이디</label>
-          <input
-            v-model="form.username"
-            class="field-input"
-            type="text"
-            placeholder="아이디를 입력하세요"
-            autocomplete="username"
-          />
-        </div>
-        <div class="field">
-          <label class="field-label">비밀번호</label>
-          <input
-            v-model="form.password"
-            class="field-input"
-            type="password"
-            placeholder="비밀번호를 입력하세요"
-            autocomplete="current-password"
-          />
-        </div>
+      <!-- Form card -->
+      <div class="login-card">
         <p v-if="loginIdChangedMsg" class="info-msg">{{ loginIdChangedMsg }}</p>
-        <p v-if="authStore.error" class="error-msg">{{ authStore.error }}</p>
-        <button type="submit" class="btn-primary">로그인</button>
-      </form>
+        <form class="login-form" @submit.prevent="handleLogin">
+          <div class="field">
+            <label class="field-label">아이디</label>
+            <input
+              v-model="form.username"
+              class="field-input"
+              type="text"
+              placeholder="아이디를 입력하세요"
+              autocomplete="username"
+            />
+          </div>
+          <div class="field">
+            <label class="field-label">비밀번호</label>
+            <input
+              v-model="form.password"
+              class="field-input"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              autocomplete="current-password"
+            />
+          </div>
+          <p v-if="authStore.error" class="error-msg">{{ authStore.error }}</p>
+          <button type="submit" class="btn-primary">로그인</button>
+        </form>
 
-      <p class="register-link">
-        계정이 없으신가요?
-        <RouterLink to="/register">회원가입 신청</RouterLink>
-      </p>
-
-      <p class="register-hint">회원가입 신청 후 관리자 승인이 필요합니다.</p>
+        <div class="login-footer">
+          <p class="register-link">
+            계정이 없으신가요?
+            <RouterLink to="/register">회원가입 신청</RouterLink>
+          </p>
+          <p class="hint">승인된 사용자만 이용 가능한 서비스입니다</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -89,12 +92,14 @@ async function handleLogin() {
 <style scoped>
 .login-view {
   min-height: 100vh;
-  background: var(--color-bg, var(--color-background));
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
 }
 .theme-bar {
   display: flex;
   justify-content: flex-end;
-  padding: 14px 20px 0;
+  padding: 16px 20px 0;
 }
 .theme-btn {
   display: flex;
@@ -108,40 +113,54 @@ async function handleLogin() {
   border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-soft);
 }
 .theme-btn:active { opacity: 0.8; }
 .theme-dot {
   width: 10px; height: 10px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 .login-body {
-  padding: 20px 28px 48px;
+  flex: 1;
+  padding: 16px 28px 48px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 .logo-area {
   text-align: center;
-  padding: 36px 0 8px;
+  padding: 32px 0 4px;
 }
-.logo-icon { font-size: 56px; margin-bottom: 14px; }
+.logo-icon { font-size: 60px; margin-bottom: 16px; display: block; }
 .logo-title {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--color-primary);
-  margin-bottom: 6px;
-  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 .logo-sub {
   font-size: 14px;
   color: var(--color-text-secondary);
 }
-.login-form {
+
+/* Form card */
+.login-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  padding: 24px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label {
@@ -153,31 +172,35 @@ async function handleLogin() {
 .field-input {
   padding: 13px 16px;
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 .field-input:focus {
-  border-color: var(--color-input-focus);
-  box-shadow: 0 0 0 3px var(--color-primary-soft, var(--color-primary-light));
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  background: var(--color-surface);
 }
 .error-msg {
   font-size: 13px;
   color: var(--color-danger);
+  background: var(--color-danger-soft);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
   text-align: center;
 }
 .info-msg {
   font-size: 13px;
   color: var(--color-primary);
-  text-align: center;
-  background: var(--color-primary-soft, var(--color-primary-light));
+  background: var(--color-primary-soft);
   padding: 10px 14px;
   border-radius: var(--radius-md);
   line-height: 1.5;
+  text-align: center;
 }
 .btn-primary {
   margin-top: 4px;
@@ -185,13 +208,21 @@ async function handleLogin() {
   border-radius: var(--radius-pill);
   background: var(--color-btn);
   color: var(--color-btn-text);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   width: 100%;
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: var(--shadow-soft);
 }
 .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+
+.login-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
 .register-link {
   text-align: center;
   font-size: 14px;
@@ -202,10 +233,10 @@ async function handleLogin() {
   font-weight: 600;
   text-decoration: none;
 }
-.register-hint {
+.hint {
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-secondary);
-  opacity: 0.8;
+  opacity: 0.7;
 }
 </style>
