@@ -380,14 +380,14 @@ function handleDelete() {
 .cal-wrap { padding:4px 8px; }
 .dow-row { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:2px; }
 .dow-cell { text-align:center; font-size:11px; font-weight:600; color:var(--color-text-2); padding:4px 0; }
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-.cal-cell { min-height:60px; display:flex; flex-direction:column; padding:3px; border-radius:6px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; overflow:hidden; }
+.cal-cell { min-height:60px; display:flex; flex-direction:column; padding:3px; border-radius:6px; min-width:0; overflow:hidden; }
 .cal-cell.empty { background:transparent; }
 .cal-cell.today .day-num { background:var(--color-primary); color:#fff; border-radius:50%; }
-.day-num { font-size:11px; font-weight:600; color:var(--color-text-1); width:20px; height:20px; display:flex; align-items:center; justify-content:center; }
-.cal-events { display:flex; flex-direction:column; gap:1px; margin-top:1px; }
-.cal-ev { border-radius:2px; padding:1px 3px; cursor:pointer; }
-.cal-ev-text { font-size:9px; color:#fff; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.day-num { font-size:11px; font-weight:600; color:var(--color-text-1); width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cal-events { display:flex; flex-direction:column; gap:1px; margin-top:1px; overflow:hidden; min-width:0; }
+.cal-ev { border-radius:2px; padding:1px 3px; cursor:pointer; min-width:0; overflow:hidden; }
+.cal-ev-text { font-size:9px; color:#fff; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
 /* edit form */
 .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .radio-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:4px; }

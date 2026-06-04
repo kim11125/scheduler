@@ -39,17 +39,14 @@ public class Schedule {
     @Column(length = 10)
     private BaseballType baseballType;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "start_date", nullable = false)
+    private LocalDate date;  // start_date 컬럼 매핑 (기존 date 필드명 유지)
 
     @Column(name = "end_date")
     private LocalDate endDate;
 
     @Column(columnDefinition = "TEXT")
     private String memo;
-
-    @Column(name = "start_date")
-    private LocalDate startDate;
 
     @Column(name = "team_id")
     private Long teamId;

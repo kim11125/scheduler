@@ -157,7 +157,7 @@
                 <p v-if="formErrors.category" class="field-err">{{ formErrors.category }}</p>
               </div>
               <Transition name="slide">
-                <div class="field" v-if="formData.category === 'BASEBALL'">
+                <div class="field" v-if="['BASEBALL','WOMENS_VOLLEYBALL','MENS_VOLLEYBALL'].includes(formData.category)">
                   <label class="field-label">홈 / 원정 <span style="color:var(--color-danger)">*</span></label>
                   <div class="radio-row-2">
                     <label v-for="bt in BASEBALL_TYPES" :key="bt.value" class="radio-item"
@@ -322,13 +322,15 @@ function openEditModal(s: Schedule) {
 
 function closeModal() { modalOpen.value = false; editTarget.value = null }
 
-watch(() => formData.category, (cat) => { if (cat !== 'BASEBALL') formData.baseballType = null })
+const HOME_AWAY_CATS = ['BASEBALL', 'WOMENS_VOLLEYBALL', 'MENS_VOLLEYBALL']
+
+watch(() => formData.category, (cat) => { if (!HOME_AWAY_CATS.includes(cat)) formData.baseballType = null })
 
 function validateForm(): boolean {
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
   if (!formData.title.trim()) formErrors.title = '제목을 입력하세요'
   if (!formData.category) formErrors.category = '카테고리를 선택하세요'
-  if (formData.category === 'BASEBALL' && !formData.baseballType) formErrors.baseballType = '홈 또는 원정을 선택하세요'
+  if (HOME_AWAY_CATS.includes(formData.category) && !formData.baseballType) formErrors.baseballType = '홈 또는 원정을 선택하세요'
   return Object.keys(formErrors).length === 0
 }
 

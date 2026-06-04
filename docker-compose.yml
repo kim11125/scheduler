@@ -32,7 +32,7 @@ services:
       JWT_SECRET: thisIsAVeryLongSecretKeyForSchedulerAppPleaseChangeInProduction123!
       TZ: Asia/Seoul
     ports:
-      - "8080:8080"
+      - "9090:8080"
     volumes:
       - uploads_data:/uploads
     depends_on:
