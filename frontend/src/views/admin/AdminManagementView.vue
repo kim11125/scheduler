@@ -1,25 +1,33 @@
 <template>
-  <div class="page">
-    <header class="app-header">
-      <span class="header-title">⚙️ 관리</span>
+  <div class="shell shell-nav">
+    <header class="topbar">
+      <span class="topbar-title">관리</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
+      </div>
     </header>
 
     <div class="mgmt-body">
       <div class="card menu-list" style="border-radius: 14px; overflow: hidden; margin: 16px 0;">
         <button class="menu-item" @click="router.push('/admin/companies')">
-          <span class="menu-icon">🏢</span>
+          <span class="menu-icon"><AppIcon name="building" size="sm" style="color:var(--color-primary)" /></span>
           <span class="menu-label">회사 관리</span>
-          <span class="menu-arrow">›</span>
+          <AppIcon name="chevron-right" size="sm" class="menu-arrow" />
         </button>
         <button class="menu-item" @click="router.push('/admin/teams')">
-          <span class="menu-icon">⚽</span>
+          <span class="menu-icon"><AppIcon name="team" size="sm" style="color:var(--color-primary)" /></span>
           <span class="menu-label">팀 관리</span>
-          <span class="menu-arrow">›</span>
+          <AppIcon name="chevron-right" size="sm" class="menu-arrow" />
         </button>
         <button class="menu-item" @click="router.push('/admin/schedules')">
-          <span class="menu-icon">📅</span>
+          <span class="menu-icon"><AppIcon name="calendar" size="sm" style="color:var(--color-primary)" /></span>
           <span class="menu-label">일정 관리</span>
-          <span class="menu-arrow">›</span>
+          <AppIcon name="chevron-right" size="sm" class="menu-arrow" />
         </button>
       </div>
 
@@ -31,7 +39,7 @@
         </div>
         <div class="log-list">
           <div v-if="logs.length === 0" class="empty-state">
-            <span class="empty-icon">📋</span>
+            <AppIcon name="log" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
             <p class="empty-text">로그가 없어요</p>
           </div>
           <div v-for="log in logs" :key="log.id" class="log-item">
@@ -47,6 +55,7 @@
     </div>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -56,10 +65,18 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { adminApi } from '@/api/admin'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
+const themeSheetOpen = ref(false)
 const authStore = useAuthStore()
 const logs = ref<any[]>([])
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 async function fetchLogs() {
   if (authStore.user?.role !== 'ADMIN') return

@@ -1,109 +1,89 @@
 <template>
   <div class="shell shell-nav">
-    <!-- Top bar -->
+    <!-- Header: white, no color dots -->
     <header class="topbar">
-      <span class="topbar-title">⚙️ 관리자</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="theme-row">
-          <button v-for="t in themes" :key="t.key"
-            :class="['theme-dot-btn', { 'is-active': themeStore.current === t.key }]"
-            :style="{ '--dot-c': t.color }"
-            @click="themeStore.setTheme(t.key)" />
-        </div>
-        <button class="topbar-action" @click="router.push('/my-schedules')">📅 내 일정</button>
-        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃" style="font-size:15px">↩</button>
+      <span class="topbar-title">관리자</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="topbar-icon-btn" @click="router.push('/my-schedules')">
+          <AppIcon name="calendar" size="md" />
+        </button>
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
       </div>
     </header>
 
-    <!-- Pending alert strip -->
-    <div v-if="usersStore.pendingUsers.length > 0" class="pending-alert" @click="scrollTo('pending')">
-      <span>🔔 승인 대기 {{ usersStore.pendingUsers.length }}명</span>
-      <span>›</span>
-    </div>
+    <div style="overflow-y:auto;flex:1">
+      <!-- Pending approvals alert bar -->
+      <div v-if="usersStore.pendingUsers.length > 0" class="pending-alert-bar" @click="scrollTo('pending')">
+        <AppIcon name="alert" size="sm" />
+        <span>승인 대기 {{ usersStore.pendingUsers.length }}명</span>
+        <AppIcon name="chevron-right" size="sm" style="margin-left:auto" />
+      </div>
 
-    <div class="dash-scroll">
-      <!-- Summary panel -->
-      <div class="section" style="margin-top:16px">
-        <div class="summary-panel">
-          <div class="summary-row">
-            <div class="summary-item" @click="scrollTo('pending')">
-              <span class="summary-num" :class="{ 'summary-num-alert': usersStore.pendingUsers.length > 0 }">{{ usersStore.pendingUsers.length }}</span>
-              <div class="summary-label">승인 대기</div>
-            </div>
-            <div class="summary-item" @click="router.push('/admin/users')">
-              <span class="summary-num">{{ activeCount }}</span>
-              <div class="summary-label">활성 사용자</div>
-            </div>
-            <div class="summary-item" @click="router.push('/admin/schedules')">
-              <span class="summary-num">{{ totalScheduleCount }}</span>
-              <div class="summary-label">전체 일정</div>
-            </div>
-          </div>
+      <!-- Compact summary -->
+      <div class="admin-summary">
+        <div class="admin-sum-item" @click="router.push('/admin/users')">
+          <span class="admin-sum-num">{{ activeCount }}</span>
+          <span class="admin-sum-label">활성 사용자</span>
+        </div>
+        <div class="admin-sum-sep"></div>
+        <div class="admin-sum-item" @click="router.push('/admin/schedules')">
+          <span class="admin-sum-num">{{ totalScheduleCount }}</span>
+          <span class="admin-sum-label">전체 일정</span>
         </div>
       </div>
 
-      <!-- Quick menu -->
-      <div class="section" style="margin-top:20px">
-        <div class="section-title">빠른 메뉴</div>
+      <!-- Quick shortcuts - compact horizontal strip -->
+      <div class="quick-strip">
+        <button class="quick-strip-item" @click="router.push('/admin/users')">
+          <span class="quick-strip-icon"><AppIcon name="users" size="md" /></span>
+          <span class="quick-strip-label">사용자</span>
+        </button>
+        <button class="quick-strip-item" @click="router.push('/admin/schedules')">
+          <span class="quick-strip-icon"><AppIcon name="calendar" size="md" /></span>
+          <span class="quick-strip-label">일정</span>
+        </button>
+        <button class="quick-strip-item" @click="router.push('/admin/companies')">
+          <span class="quick-strip-icon"><AppIcon name="building" size="md" /></span>
+          <span class="quick-strip-label">회사</span>
+        </button>
+        <button class="quick-strip-item" @click="router.push('/admin/teams')">
+          <span class="quick-strip-icon"><AppIcon name="team" size="md" /></span>
+          <span class="quick-strip-label">팀</span>
+        </button>
+        <button class="quick-strip-item" @click="logsExpanded = !logsExpanded">
+          <span class="quick-strip-icon"><AppIcon name="log" size="md" /></span>
+          <span class="quick-strip-label">로그</span>
+        </button>
+      </div>
+
+      <!-- Pending approvals section -->
+      <div class="admin-section" ref="pendingRef" v-if="usersStore.pendingUsers.length > 0">
+        <p class="admin-section-title">승인 대기</p>
         <div class="row-list">
-          <div class="row-item" @click="router.push('/admin/users')">
-            <div class="row-icon">👥</div>
-            <div class="row-body"><div class="row-title">사용자 관리</div><div class="row-sub">가입 승인 · 계정 관리</div></div>
-            <span class="row-arrow">›</span>
-          </div>
-          <div class="row-item" @click="router.push('/admin/schedules')">
-            <div class="row-icon">📅</div>
-            <div class="row-body"><div class="row-title">전체 일정</div><div class="row-sub">모든 사용자 일정 조회</div></div>
-            <span class="row-arrow">›</span>
-          </div>
-          <div class="row-item" @click="router.push('/admin/companies')">
-            <div class="row-icon">🏢</div>
-            <div class="row-body"><div class="row-title">회사 관리</div><div class="row-sub">회사 추가 · 팀 연결</div></div>
-            <span class="row-arrow">›</span>
-          </div>
-          <div class="row-item" @click="router.push('/admin/teams')">
-            <div class="row-icon">⚽</div>
-            <div class="row-body"><div class="row-title">팀 관리</div><div class="row-sub">팀 추가 · 카테고리 설정</div></div>
-            <span class="row-arrow">›</span>
-          </div>
-          <div v-if="authStore.user?.role === 'ADMIN'" class="row-item" @click="scrollTo('logs')">
-            <div class="row-icon">📋</div>
-            <div class="row-body"><div class="row-title">로그인 로그</div><div class="row-sub">접속 기록 확인</div></div>
-            <span class="row-arrow">›</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pending approvals -->
-      <div class="section" style="margin-top:20px" ref="pendingRef">
-        <div class="section-header">
-          <span class="section-title">승인 대기</span>
-          <span v-if="usersStore.pendingUsers.length" class="badge badge-pending">{{ usersStore.pendingUsers.length }}</span>
-        </div>
-        <div v-if="usersStore.pendingUsers.length === 0" class="empty" style="padding:24px">
-          <span class="empty-icon">✅</span>
-          <p class="empty-text">대기 중인 가입 신청이 없습니다</p>
-        </div>
-        <div v-else class="row-list">
-          <div v-for="u in usersStore.pendingUsers" :key="u.id" class="row-item" style="cursor:default">
+          <div v-for="u in usersStore.pendingUsers.slice(0,3)" :key="u.id" class="row-item">
             <div class="avatar avatar-sm" :style="{ background: avatarColor(u.name) }">{{ u.name[0] }}</div>
             <div class="row-body">
               <div class="row-title">{{ u.name }}</div>
               <div class="row-sub">@{{ u.username }} · {{ formatDate(u.createdAt) }}</div>
             </div>
-            <div class="row-right">
-              <button class="btn btn-xs btn-primary" @click="handleApprove(u.id)">승인</button>
-              <button class="btn btn-xs btn-danger" @click="handleReject(u.id)">거절</button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-primary btn-sm" @click.stop="handleApprove(u.id)">승인</button>
+              <button class="btn btn-ghost" @click.stop="handleReject(u.id)">거절</button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Recent users -->
-      <div class="section" style="margin-top:20px">
-        <div class="section-header">
-          <span class="section-title">최근 사용자</span>
-          <button class="see-all" @click="router.push('/admin/users')">전체 보기</button>
+      <div class="admin-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <p class="admin-section-title" style="margin-bottom:0">최근 사용자</p>
+          <button class="btn btn-ghost" style="height:26px;font-size:11px;padding:0 8px" @click="router.push('/admin/users')">전체 보기</button>
         </div>
         <div class="row-list">
           <div v-for="u in recentUsers" :key="u.id" class="row-item" @click="openUserModal(u)">
@@ -112,7 +92,8 @@
               <div class="row-title">{{ u.name }}</div>
               <div class="row-sub">@{{ u.username }}</div>
             </div>
-            <span :class="['badge', `badge-${u.status.toLowerCase()}`]">{{ STATUS_LABELS[u.status] }}</span>
+            <span :class="['badge', statusBadgeClass(u.status)]">{{ STATUS_LABELS[u.status] }}</span>
+            <AppIcon name="chevron-right" size="sm" style="color:var(--color-text-3)" />
           </div>
           <div v-if="recentUsers.length === 0" class="empty" style="padding:24px">
             <p class="empty-text">사용자가 없습니다</p>
@@ -120,19 +101,25 @@
         </div>
       </div>
 
-      <!-- Login logs (ADMIN only) -->
-      <div class="section" style="margin-top:20px" ref="logsRef" v-if="authStore.user?.role === 'ADMIN'">
-        <div class="section-header">
-          <span class="section-title">로그인 로그</span>
-          <button class="see-all" @click="fetchLogs">새로고침</button>
+      <!-- Login log - collapsed by default -->
+      <div class="admin-section" v-if="authStore.user?.role === 'ADMIN'" ref="logsRef">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <p class="admin-section-title" style="margin-bottom:0">로그인 로그</p>
+          <button class="btn btn-ghost" style="height:26px;font-size:11px;padding:0 8px" @click="logsExpanded = !logsExpanded">
+            {{ logsExpanded ? '접기' : '펼치기' }}
+          </button>
         </div>
-        <div class="row-list">
+        <div v-if="logsExpanded" class="row-list">
           <div v-if="logs.length === 0" class="empty" style="padding:24px"><p class="empty-text">로그가 없습니다</p></div>
-          <div v-for="log in logs" :key="log.id" class="log-row">
-            <span class="log-action" :class="log.action === 'LOGIN' ? 'log-in' : 'log-out'">{{ log.action === 'LOGIN' ? '로그인' : '로그아웃' }}</span>
-            <span class="log-user">{{ log.username }}</span>
-            <span class="log-meta">{{ log.ipAddress || '-' }}</span>
-            <span class="log-meta">{{ formatLogDate(log.createdAt) }}</span>
+          <div v-for="log in logs.slice(0,10)" :key="log.id" class="row-item" style="padding:10px 16px">
+            <span :class="['badge', log.action==='LOGIN' ? 'badge-active' : 'badge-disabled']" style="width:52px;justify-content:center">
+              {{ log.action==='LOGIN' ? '로그인' : '로그아웃' }}
+            </span>
+            <div class="row-body" style="margin-left:8px">
+              <div class="row-title" style="font-size:13px">{{ log.username }}</div>
+              <div class="row-sub">{{ log.ipAddress || '-' }}</div>
+            </div>
+            <div style="font-size:11px;color:var(--color-text-3)">{{ formatLogDate(log.createdAt) }}</div>
           </div>
         </div>
       </div>
@@ -147,7 +134,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">사용자 정보</span>
-            <button class="sheet-close" @click="closeUserModal">✕</button>
+            <button class="sheet-close" @click="closeUserModal"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
@@ -188,7 +175,7 @@
               <div v-if="userCompanies.length > 0" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
                 <span v-for="uc in userCompanies" :key="uc.companyId" class="chip active" style="gap:6px">
                   {{ uc.companyName }}
-                  <button @click="removeCompany(uc.companyId)" style="font-size:10px;color:inherit;opacity:0.7">✕</button>
+                  <button @click="removeCompany(uc.companyId)" style="display:flex;align-items:center;color:inherit;opacity:0.7"><AppIcon name="close" size="sm" /></button>
                 </span>
               </div>
               <div v-else style="font-size:13px;color:var(--color-text-3);margin-top:4px">없음</div>
@@ -210,7 +197,7 @@
                   {{ ut.teamName }}
                   <span v-if="ut.isPrimary" style="font-size:10px">(대표)</span>
                   <button v-if="!ut.isPrimary" @click="setPrimaryTeam(ut.teamId)" style="font-size:10px;color:var(--color-primary)">대표</button>
-                  <button @click="removeTeam(ut.teamId)" style="font-size:10px;opacity:0.7">✕</button>
+                  <button @click="removeTeam(ut.teamId)" style="display:flex;align-items:center;opacity:0.7"><AppIcon name="close" size="sm" /></button>
                 </span>
               </div>
               <div v-else style="font-size:13px;color:var(--color-text-3);margin-top:4px">없음</div>
@@ -236,6 +223,7 @@
     </Teleport>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -251,15 +239,24 @@ import { teamApi } from '@/api/team'
 import type { ThemeKey, UserStatus } from '@/types'
 import type { ManagedUser } from '@/stores/users'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const usersStore = useUsersStore()
 const totalScheduleCount = ref(0)
+const logsExpanded = ref(false)
+const themeSheetOpen = ref(false)
 
 const pendingRef = ref<HTMLElement | null>(null)
 const logsRef   = ref<HTMLElement | null>(null)
+
+function statusBadgeClass(status: string) {
+  const map: Record<string, string> = { ACTIVE: 'badge-active', PENDING: 'badge-pending', REJECTED: 'badge-rejected', DISABLED: 'badge-disabled' }
+  return map[status] || 'badge-disabled'
+}
 
 function scrollTo(target: 'pending' | 'logs') {
   const el = target === 'pending' ? pendingRef.value : logsRef.value
@@ -466,18 +463,29 @@ function handleLogout() {
 </script>
 
 <style scoped>
-.dash-scroll { flex:1; overflow-y:auto; }
-.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.see-all { font-size:12px; font-weight:600; color:var(--color-primary); background:none; border:none; cursor:pointer; }
-.pending-alert { background:var(--color-danger-bg); color:var(--color-danger); font-size:13px; font-weight:600; padding:10px 16px; display:flex; justify-content:space-between; cursor:pointer; }
+.pending-alert-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; background: var(--color-warning-soft);
+  color: var(--color-warning); font-size: 13px; font-weight: 600;
+  cursor: pointer; border-bottom: 1px solid var(--color-border);
+}
+.admin-summary {
+  display: flex; padding: 16px;
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+}
+.admin-sum-item { flex: 1; text-align: center; cursor: pointer; padding: 8px; }
+.admin-sum-num { display: block; font-size: 24px; font-weight: 800; color: var(--color-primary); }
+.admin-sum-label { font-size: 11px; color: var(--color-text-2); }
+.admin-sum-sep { width: 1px; background: var(--color-border); margin: 8px 0; }
+.admin-section { padding: 16px 16px 0; }
+.admin-section-title { font-size: 13px; font-weight: 600; color: var(--color-text-2); margin-bottom: 8px; }
+.quick-strip { display: flex; background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.quick-strip-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 4px; cursor: pointer; border-right: 1px solid var(--color-border); background: none; border-top: none; border-bottom: none; border-left: none; transition: background 0.1s; }
+.quick-strip-item:last-child { border-right: none; }
+.quick-strip-item:active { background: var(--color-surface-2); }
+.quick-strip-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--color-surface-2); display: flex; align-items: center; justify-content: center; color: var(--color-text-1); }
+.quick-strip-label { font-size: 10px; font-weight: 500; color: var(--color-text-2); }
 .detail-row-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--color-border); }
 .detail-key { font-size:13px; color:var(--color-text-2); }
 .detail-val { font-size:13px; color:var(--color-text-1); font-weight:500; }
-.log-row { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--color-border); font-size:12px; }
-.log-row:last-child { border-bottom:none; }
-.log-action { padding:2px 8px; border-radius:var(--radius-pill); font-weight:600; flex-shrink:0; }
-.log-in  { background:var(--color-active-bg); color:var(--color-active); }
-.log-out { background:var(--color-surface-2); color:var(--color-text-2); }
-.log-user { font-weight:600; color:var(--color-text-1); flex-shrink:0; }
-.log-meta { color:var(--color-text-3); flex-shrink:0; }
 </style>

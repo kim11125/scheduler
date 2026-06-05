@@ -2,20 +2,22 @@
   <div class="shell shell-nav">
     <!-- Top bar -->
     <header class="topbar">
-      <span class="topbar-title">📅 캘린더</span>
-      <div class="theme-row">
-        <button v-for="t in themes" :key="t.key"
-          :class="['theme-dot-btn', { 'is-active': themeStore.current === t.key }]"
-          :style="{ '--dot-c': t.color }"
-          @click="themeStore.setTheme(t.key)" />
+      <span class="topbar-title">캘린더</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
       </div>
     </header>
 
     <!-- Month nav -->
     <div class="month-nav">
-      <button class="month-arrow" @click="prevMonth">‹</button>
+      <button class="month-arrow" @click="prevMonth"><AppIcon name="chevron-left" size="md" /></button>
       <span class="month-label">{{ currentYear }}년 {{ currentMonth }}월</span>
-      <button class="month-arrow" @click="nextMonth">›</button>
+      <button class="month-arrow" @click="nextMonth"><AppIcon name="chevron-right" size="md" /></button>
     </div>
 
     <!-- Calendar grid -->
@@ -75,14 +77,14 @@
             <span class="sched-title">{{ s.title }}</span>
             <span v-if="s.startTime" class="sched-meta">{{ s.startTime }}{{ s.endTime ? ' ~ ' + s.endTime : '' }}</span>
             <span v-if="s.endDate && s.endDate !== s.date" class="sched-meta">~ {{ s.endDate }}</span>
-            <span v-if="s.location" class="sched-meta">📍 {{ s.location }}</span>
+            <span v-if="s.location" class="sched-meta">{{ s.location }}</span>
           </div>
-          <span class="row-arrow">›</span>
+          <AppIcon name="chevron-right" size="sm" class="row-arrow" />
         </div>
       </div>
 
       <div v-else class="empty" style="padding:32px 24px">
-        <span class="empty-icon">🗓</span>
+        <AppIcon name="calendar" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
         <p class="empty-text">이 날은 일정이 없어요</p>
         <button class="btn btn-outline btn-sm empty-action" @click="openAddModal()">일정 추가하기</button>
       </div>
@@ -98,7 +100,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">{{ editTarget ? '일정 수정' : '일정 추가' }}</span>
-            <button class="sheet-close" @click="closeModal">✕</button>
+            <button class="sheet-close" @click="closeModal"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <form @submit.prevent="handleSave">
@@ -190,18 +192,16 @@
               </div>
             </form>
           </div>
-          <div class="sheet-footer">
-            <button v-if="editTarget" type="button" class="btn btn-danger btn-sm" @click="handleDelete">삭제</button>
-            <div style="display:flex;gap:8px;margin-left:auto">
-              <button type="button" class="btn btn-secondary btn-sm" @click="closeModal">취소</button>
-              <button type="button" class="btn btn-primary btn-sm" @click="handleSave">저장</button>
-            </div>
+          <div class="sticky-footer">
+            <button type="button" class="btn btn-secondary" style="flex:1" @click="closeModal">취소</button>
+            <button type="button" class="btn btn-primary" style="flex:2" @click="handleSave">저장</button>
           </div>
         </div>
       </div>
     </Teleport>
 
     <BottomNavUser />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -212,16 +212,21 @@ import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useScheduleStore } from '@/stores/schedule'
 import { useCalendar } from '@/composables/useCalendar'
+import { useToast } from '@/composables/useToast'
 import { userApi } from '@/api/user'
 import { adminApi } from '@/api/admin'
 import type { Schedule, Category, ThemeKey, ScheduleStatus, TeamRef } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 import BottomNavUser from '@/components/BottomNavUser.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const scheduleStore = useScheduleStore()
+const themeSheetOpen = ref(false)
+const { success: toastSuccess, error: toastError } = useToast()
 
 const themes: { key: ThemeKey; color: string; label: string }[] = [
   { key: 'lavender', color: '#8B7FD4', label: '라벤더' },
@@ -336,14 +341,36 @@ function validateForm(): boolean {
 
 async function handleSave() {
   if (!validateForm()) return
-  if (editTarget.value) await scheduleStore.update(editTarget.value.id, { ...formData })
-  else { await scheduleStore.add({ ...formData }); selectedDate.value = formData.date }
-  closeModal()
+  try {
+    if (editTarget.value) {
+      await scheduleStore.update(editTarget.value.id, { ...formData })
+    } else {
+      await scheduleStore.add({ ...formData })
+      selectedDate.value = formData.date
+    }
+    closeModal()
+    toastSuccess('일정이 저장됐습니다.')
+  } catch (e: any) {
+    toastError(e.response?.data?.message || '저장에 실패했습니다.')
+  }
+}
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
 }
 
 async function handleDelete() {
   if (!editTarget.value) return
-  if (confirm('일정을 삭제하시겠습니까?')) { await scheduleStore.remove(editTarget.value.id); closeModal() }
+  if (confirm('일정을 삭제하시겠습니까?')) {
+    try {
+      await scheduleStore.remove(editTarget.value.id)
+      closeModal()
+      toastSuccess('일정이 삭제됐습니다.')
+    } catch {
+      toastError('삭제에 실패했습니다.')
+    }
+  }
 }
 
 const adminUsers = ref<{id: number; name: string; username: string}[]>([])

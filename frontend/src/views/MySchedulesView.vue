@@ -1,7 +1,15 @@
 <template>
-  <div class="page">
-    <header class="app-header">
-      <span class="header-title">📋 내 일정</span>
+  <div class="shell shell-nav">
+    <header class="topbar">
+      <span class="topbar-title">내 일정</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
+      </div>
     </header>
 
     <!-- Category filter chips -->
@@ -28,13 +36,13 @@
               <span v-if="s.status && s.status !== 'SCHEDULED'" class="agenda-status" :class="'st-' + s.status.toLowerCase()">
                 {{ { CONFIRMED: '확정', CHANGED: '변경', CANCELLED: '취소' }[s.status] }}
               </span>
-              <span class="agenda-arrow">›</span>
+              <AppIcon name="chevron-right" size="sm" class="agenda-arrow" />
             </div>
           </div>
         </div>
       </template>
       <div v-else class="empty-state">
-        <span class="empty-icon">📭</span>
+        <AppIcon name="list" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
         <p class="empty-text">일정이 없어요</p>
       </div>
     </div>
@@ -49,7 +57,7 @@
           <div class="modal-handle"></div>
           <div class="modal-header">
             <h3 class="modal-title">{{ editTarget ? '일정 수정' : '일정 추가' }}</h3>
-            <button class="modal-close" @click="closeModal">✕</button>
+            <button class="modal-close" @click="closeModal"><AppIcon name="close" size="sm" /></button>
           </div>
           <form class="modal-form" @submit.prevent="handleSave">
             <div class="form-field" v-if="authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'">
@@ -151,11 +159,13 @@
     </Teleport>
 
     <BottomNavUser />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, reactive, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useScheduleStore } from '@/stores/schedule'
 import { userApi } from '@/api/user'
@@ -163,8 +173,12 @@ import { adminApi } from '@/api/admin'
 import type { Schedule, Category, ScheduleStatus, TeamRef } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 import BottomNavUser from '@/components/BottomNavUser.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
+const router = useRouter()
 const authStore = useAuthStore()
+const themeSheetOpen = ref(false)
 const scheduleStore = useScheduleStore()
 
 const DOT_COLORS: Record<Category, string> = {
@@ -226,6 +240,11 @@ function resetForm() {
   formData.endTime = ''; formData.location = ''; formData.memo = ''
   formData.targetUserId = null; formData.teamId = null; formData.status = 'SCHEDULED'
   Object.keys(formErrors).forEach(k => delete (formErrors as Record<string,string>)[k])
+}
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
 }
 
 function openAddModal() { editTarget.value = null; resetForm(); modalOpen.value = true }

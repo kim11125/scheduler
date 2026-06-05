@@ -2,59 +2,54 @@
   <div class="shell shell-nav">
     <!-- Top bar -->
     <header class="topbar">
-      <button class="topbar-back" @click="router.push('/admin')">‹</button>
+      <button class="topbar-back" @click="router.push('/admin')"><AppIcon name="chevron-left" size="md" /></button>
       <span class="topbar-title">회사 관리</span>
-      <button class="topbar-action" @click="openAddModal">+ 등록</button>
+      <button class="topbar-action" @click="openAddModal" style="margin-left:auto">+ 등록</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
+      </div>
     </header>
 
     <!-- Search -->
-    <div class="search-wrap">
-      <div class="search-input-wrap">
-        <span class="search-icon">🔍</span>
-        <input v-model="searchQuery" class="search-input" placeholder="회사명 검색..." />
+    <div style="padding:10px 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+      <div class="search-box">
+        <AppIcon name="search" size="sm" style="color:var(--color-text-3);flex-shrink:0" />
+        <input v-model="searchQuery" class="search-box-input" placeholder="회사명 검색" />
       </div>
     </div>
 
-    <!-- Summary -->
-    <div class="section" style="margin-top:10px">
-      <div class="summary-panel">
-        <div class="summary-row">
-          <div class="summary-item">
-            <span class="summary-num">{{ companies.filter(c => c.isActive).length }}</span>
-            <div class="summary-label">활성</div>
-          </div>
-          <div class="summary-item">
-            <span class="summary-num" style="color:var(--color-text-3)">{{ companies.filter(c => !c.isActive).length }}</span>
-            <div class="summary-label">비활성</div>
-          </div>
-          <div class="summary-item">
-            <span class="summary-num">{{ companies.length }}</span>
-            <div class="summary-label">전체</div>
-          </div>
-        </div>
-      </div>
+    <!-- Compact summary -->
+    <div class="summary-inline">
+      <span class="sum-num">{{ companies.length }}</span>개
+      <span class="sum-sep">·</span>
+      활성 <span class="sum-num">{{ companies.filter(c => c.isActive).length }}</span>
+      <span class="sum-sep">·</span>
+      비활성 <span class="sum-num">{{ companies.filter(c => !c.isActive).length }}</span>
     </div>
 
     <!-- Company list -->
-    <div class="section" style="margin-top:16px;padding-bottom:16px">
+    <div style="flex:1;overflow-y:auto">
       <div v-if="filteredCompanies.length === 0" class="empty">
-        <span class="empty-icon">🏢</span>
-        <p class="empty-text">등록된 회사가 없습니다</p>
+        <AppIcon name="building" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
+        <p class="empty-text">{{ searchQuery ? '검색 결과가 없습니다' : '등록된 회사가 없습니다' }}</p>
       </div>
       <div v-else class="row-list">
         <div v-for="c in filteredCompanies" :key="c.id" class="row-item" @click="openDetail(c)">
-          <div class="row-icon" style="overflow:hidden;padding:0">
-            <img v-if="c.logoUrl" :src="c.logoUrl" style="width:100%;height:100%;object-fit:cover" alt="" />
-            <span v-else style="font-size:15px;font-weight:700;color:var(--color-primary)">{{ c.name[0] }}</span>
+          <div class="company-logo-sm">
+            <img v-if="c.logoUrl" :src="c.logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:6px" />
+            <span v-else style="font-size:14px;font-weight:700;color:var(--color-text-2)">{{ c.name[0] }}</span>
           </div>
           <div class="row-body">
             <div class="row-title">{{ c.name }}</div>
             <div v-if="c.description" class="row-sub">{{ c.description }}</div>
           </div>
-          <div class="row-right">
-            <span :class="['badge', c.isActive ? 'badge-active' : 'badge-disabled']">{{ c.isActive ? '활성' : '비활성' }}</span>
-            <span class="row-arrow">›</span>
-          </div>
+          <span :class="['badge', c.isActive ? 'badge-active' : 'badge-disabled']">{{ c.isActive ? '활성' : '비활성' }}</span>
+          <AppIcon name="chevron-right" size="sm" style="color:var(--color-text-3)" />
         </div>
       </div>
     </div>
@@ -66,7 +61,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">{{ editingCompany ? '회사 수정' : '회사 등록' }}</span>
-            <button class="sheet-close" @click="formModal = false">✕</button>
+            <button class="sheet-close" @click="formModal = false"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <form @submit.prevent="saveCompany">
@@ -100,7 +95,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">{{ detailCompany.name }}</span>
-            <button class="sheet-close" @click="detailCompany = null">✕</button>
+            <button class="sheet-close" @click="detailCompany = null"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -120,7 +115,7 @@
                 <span v-for="t in detailTeams" :key="t.id" class="chip active" style="gap:6px">
                   <span style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></span>
                   {{ t.name }}
-                  <button @click.stop="removeTeamFromCompany(t.id)" style="font-size:10px;opacity:0.7">✕</button>
+                  <button @click.stop="removeTeamFromCompany(t.id)" style="display:flex;align-items:center;opacity:0.7"><AppIcon name="close" size="sm" /></button>
                 </span>
               </div>
               <div v-if="availableTeams.length > 0" style="display:flex;gap:8px;margin-top:10px">
@@ -147,17 +142,28 @@
     </Teleport>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 import { adminApi } from '@/api/admin'
 import type { Company, Team, Category } from '@/types'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const themeSheetOpen = ref(false)
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 const companies = ref<Company[]>([])
 const allTeams = ref<Team[]>([])
 const searchQuery = ref('')
@@ -286,3 +292,13 @@ async function removeTeamFromCompany(teamId: number) {
   }
 }
 </script>
+
+<style scoped>
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--color-surface-2); border-radius: 10px; padding: 0 12px; height: 38px; border: 1px solid var(--color-border); }
+.search-box-input { flex: 1; background: none; border: none; outline: none; font-size: 14px; color: var(--color-text-1); }
+.search-box-input::placeholder { color: var(--color-text-3); }
+.summary-inline { padding: 8px 16px; font-size: 13px; color: var(--color-text-2); border-bottom: 1px solid var(--color-border); }
+.sum-num { font-weight: 600; color: var(--color-text-1); }
+.sum-sep { margin: 0 6px; color: var(--color-text-3); }
+.company-logo-sm { width: 36px; height: 36px; border-radius: 8px; background: var(--color-surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; border: 1px solid var(--color-border); }
+</style>

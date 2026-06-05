@@ -1,22 +1,30 @@
 <template>
   <div class="app-shell pending-view">
+    <div style="position:absolute;top:12px;right:12px;z-index:10">
+      <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+        <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+      </button>
+    </div>
     <div class="pending-content">
       <div class="pending-icon" :class="iconClass">{{ icon }}</div>
       <h2 class="pending-title">{{ title }}</h2>
       <p class="pending-message">{{ message }}</p>
       <button class="btn-logout" @click="handleLogout">로그아웃</button>
     </div>
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+const themeSheetOpen = ref(false)
 const status = computed(() => authStore.user?.status ?? 'PENDING')
 
 const ICONS: Record<string, string> = { PENDING: '⏳', REJECTED: '✕', DISABLED: '🔒' }
@@ -45,6 +53,7 @@ function handleLogout() {
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
+  position: relative;
 }
 .pending-content {
   display: flex;

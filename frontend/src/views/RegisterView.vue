@@ -3,6 +3,9 @@
     <div class="reg-header">
       <button class="back-btn" @click="router.push('/login')">&#8249;</button>
       <h2>회원가입 신청</h2>
+      <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경" style="margin-left:auto">
+        <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+      </button>
     </div>
 
     <div class="reg-body" v-if="!done">
@@ -61,6 +64,8 @@
       <p>관리자 승인을 기다려주세요.<br />승인 후 로그인할 수 있습니다.</p>
       <button class="btn-primary" @click="router.push('/login')">로그인으로 이동</button>
     </div>
+
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -69,10 +74,12 @@ import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authApi } from '@/api/auth'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const done = ref(false)
+const themeSheetOpen = ref(false)
 const form = reactive({ username: '', password: '', passwordConfirm: '', name: '' })
 const errors = reactive<Record<string, string>>({})
 

@@ -2,33 +2,42 @@
   <div class="shell shell-nav">
     <!-- Top bar -->
     <header class="topbar">
-      <button class="topbar-back" @click="router.push('/admin')">‹</button>
+      <button class="topbar-back" @click="router.push('/admin')"><AppIcon name="chevron-left" size="md" /></button>
       <span class="topbar-title">전체 일정</span>
-      <div style="display:flex;gap:6px">
-        <button class="topbar-action" @click="filterOpen = true">필터{{ hasActiveFilter ? ' ●' : '' }}</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="topbar-action" @click="filterOpen = true">
+          <AppIcon name="filter" size="sm" />
+          필터<span v-if="activeFilterCount > 0" class="topbar-filter-count">{{ activeFilterCount }}</span>
+        </button>
         <button class="topbar-action" @click="viewMode = viewMode === 'list' ? 'calendar' : 'list'">
           {{ viewMode === 'list' ? '▦' : '≡' }}
+        </button>
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
         </button>
       </div>
     </header>
 
     <!-- Month nav -->
     <div class="month-nav">
-      <button class="month-arrow" @click="prevMonth">‹</button>
+      <button class="month-arrow" @click="prevMonth"><AppIcon name="chevron-left" size="md" /></button>
       <span class="month-label">{{ viewYear }}년 {{ viewMonth }}월</span>
-      <button class="month-arrow" @click="nextMonth">›</button>
+      <button class="month-arrow" @click="nextMonth"><AppIcon name="chevron-right" size="md" /></button>
     </div>
 
     <!-- Active filter chips -->
     <div v-if="hasActiveFilter" class="filter-chips-bar">
       <button v-if="userFilter !== null" class="chip active" @click="userFilter = null">
-        {{ getUserName(userFilter) }} ✕
+        {{ getUserName(userFilter) }} <AppIcon name="close" size="sm" />
       </button>
       <button v-if="catFilter !== null" class="chip active" @click="catFilter = null">
-        {{ CATEGORY_LABELS[catFilter] }} ✕
+        {{ CATEGORY_LABELS[catFilter] }} <AppIcon name="close" size="sm" />
       </button>
       <button v-if="statusFilter !== null" class="chip active" @click="statusFilter = null">
-        {{ statusFilter }} ✕
+        {{ SCHEDULE_STATUS_LABELS[statusFilter] }} <AppIcon name="close" size="sm" />
       </button>
     </div>
 
@@ -51,12 +60,12 @@
                   <span v-if="s.startTime">{{ s.startTime }}</span>
                 </div>
               </div>
-              <span class="row-arrow">›</span>
+              <AppIcon name="chevron-right" size="sm" class="row-arrow" />
             </div>
           </div>
         </template>
       </template>
-      <div v-else class="empty"><span class="empty-icon">📭</span><p class="empty-text">해당하는 일정이 없습니다</p></div>
+      <div v-else class="empty"><AppIcon name="calendar" size="lg" class="empty-icon" style="color:var(--color-text-3)" /><p class="empty-text">해당하는 일정이 없습니다</p></div>
     </div>
 
     <!-- Calendar view -->
@@ -89,7 +98,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">필터</span>
-            <button class="sheet-close" @click="filterOpen = false">✕</button>
+            <button class="sheet-close" @click="filterOpen = false"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div class="field">
@@ -135,7 +144,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">일정 수정 (관리자)</span>
-            <button class="sheet-close" @click="editTarget = null">✕</button>
+            <button class="sheet-close" @click="editTarget = null"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div style="font-size:13px;color:var(--color-text-2);margin-bottom:12px">작성자: {{ getUserName(editTarget.userId) }}</div>
@@ -221,13 +230,17 @@
     </Teleport>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, reactive, watch, onMounted } from 'vue'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUsersStore } from '@/stores/users'
 import { adminApi } from '@/api/admin'
@@ -235,7 +248,14 @@ import type { Schedule, Category, ScheduleFormData, ScheduleStatus } from '@/typ
 import { CATEGORY_LABELS, SCHEDULE_STATUS_LABELS } from '@/types'
 
 const router = useRouter()
+const themeSheetOpen = ref(false)
 const route  = useRoute()
+const authStore = useAuthStore()
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 const scheduleStore = useScheduleStore()
 const usersStore    = useUsersStore()
 
@@ -295,6 +315,13 @@ const catFilter    = ref<Category | null>(null)
 const statusFilter = ref<ScheduleStatus | null>(null)
 
 const hasActiveFilter = computed(() => userFilter.value !== null || catFilter.value !== null || statusFilter.value !== null)
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (userFilter.value !== null) count++
+  if (catFilter.value !== null) count++
+  if (statusFilter.value !== null) count++
+  return count
+})
 
 const STATUS_OPTIONS = Object.entries(SCHEDULE_STATUS_LABELS).map(([value, label]) => ({ value: value as ScheduleStatus, label }))
 
@@ -400,4 +427,5 @@ function handleDelete() {
 .slide-enter-active, .slide-leave-active { transition:all 0.2s ease; overflow:hidden; }
 .slide-enter-from, .slide-leave-to { opacity:0; max-height:0; }
 .slide-enter-to, .slide-leave-from { opacity:1; max-height:200px; }
+.topbar-filter-count { background:var(--color-primary); color:#fff; border-radius:10px; padding:0 5px; font-size:10px; font-weight:700; margin-left:3px; }
 </style>

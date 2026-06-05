@@ -7,28 +7,27 @@
         <span v-else class="profile-pill-init">{{ authStore.user?.name?.[0] }}</span>
         <span class="profile-pill-name">{{ authStore.user?.name }}</span>
       </button>
-      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-        <div class="theme-row">
-          <button v-for="t in themes" :key="t.key"
-            :class="['theme-dot-btn', { 'is-active': themeStore.current === t.key }]"
-            :style="{ '--dot-c': t.color }"
-            @click="themeStore.setTheme(t.key)" />
-        </div>
-        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃" style="font-size:15px;color:var(--color-text-2)">↩</button>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
       </div>
     </header>
 
     <!-- Admin shortcut -->
     <div v-if="isAdminUser" class="admin-banner" @click="router.push('/admin')">
-      <span>⚙️ 관리자 화면</span>
-      <span>›</span>
+      <span>관리자 화면으로 이동</span>
+      <AppIcon name="chevron-right" size="sm" />
     </div>
 
     <div class="home-scroll">
       <!-- Greeting -->
       <div class="home-greeting">
         <span class="home-date">{{ todayLabel }}</span>
-        <h1 class="home-hi">안녕하세요 👋</h1>
+        <h1 class="home-hi">안녕하세요</h1>
       </div>
 
       <!-- Today section -->
@@ -38,9 +37,9 @@
           <span class="today-count-badge" v-if="todaySchedules.length > 0">{{ todaySchedules.length }}개</span>
         </div>
         <div v-if="todaySchedules.length === 0" class="today-empty">
-          <span>📭</span>
-          <span>오늘은 일정이 없어요</span>
-          <button class="btn btn-primary btn-sm" style="margin-top:10px" @click="openAddModal()">+ 일정 추가</button>
+          <AppIcon name="calendar" size="lg" style="color:var(--color-text-3);margin-bottom:8px" />
+          <p style="font-size:14px;color:var(--color-text-2)">오늘은 일정이 없어요</p>
+          <p style="font-size:12px;color:var(--color-text-3);margin-top:4px">아래 + 버튼으로 추가해보세요</p>
         </div>
         <div v-else class="today-agenda">
           <div v-for="s in todaySchedules" :key="s.id" class="today-row" @click="openEditModal(s)">
@@ -49,7 +48,7 @@
               <span class="today-title">{{ s.title }}</span>
               <span class="today-cat">{{ CATEGORY_LABELS[s.category] }}{{ s.baseballType ? (s.baseballType==='HOME' ? ' · 홈' : ' · 원정') : '' }}</span>
             </div>
-            <span class="today-arrow">›</span>
+            <AppIcon name="chevron-right" size="sm" class="today-arrow" />
           </div>
         </div>
       </div>
@@ -90,18 +89,31 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">내 정보</span>
-            <button class="sheet-close" @click="profileOpen=false">✕</button>
+            <button class="sheet-close" @click="profileOpen=false"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div class="profile-hero">
               <div class="profile-img-wrap" @click="triggerImageUpload">
                 <img v-if="profileImageUrl" :src="profileImageUrl" class="profile-img-circle" alt="프로필" />
                 <div v-else class="avatar avatar-xl" :style="{background:'var(--color-primary)'}">{{ authStore.user?.name?.[0] }}</div>
-                <span class="profile-img-edit">📷</span>
+                <span class="profile-img-edit"><AppIcon name="camera" size="sm" /></span>
               </div>
               <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="handleImageUpload" />
               <h3 style="font-size:18px;font-weight:700;margin-top:10px">{{ authStore.user?.name }}</h3>
               <p style="font-size:13px;color:var(--color-text-2)">@{{ authStore.user?.username }}</p>
+            </div>
+            <div class="divider"></div>
+            <!-- Theme picker -->
+            <div style="margin-bottom:16px">
+              <p style="font-size:13px;font-weight:600;color:var(--color-text-2);margin-bottom:12px">테마</p>
+              <div class="theme-picker-grid">
+                <div v-for="t in themes" :key="t.key"
+                  :class="['theme-option', { selected: themeStore.current === t.key }]"
+                  @click="themeStore.setTheme(t.key)">
+                  <div class="theme-swatch" :style="{background: t.color}"></div>
+                  <span class="theme-name">{{ t.label }}</span>
+                </div>
+              </div>
             </div>
             <div class="divider"></div>
             <div class="field" style="margin-bottom:10px"><span class="field-label">비밀번호 변경</span></div>
@@ -125,7 +137,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">{{ editTarget ? '일정 수정' : '일정 추가' }}</span>
-            <button class="sheet-close" @click="closeModal">✕</button>
+            <button class="sheet-close" @click="closeModal"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <form @submit.prevent="handleSave">
@@ -215,20 +227,28 @@
                 <label class="field-label">메모 <span style="font-weight:400;color:var(--color-text-3)">(선택)</span></label>
                 <textarea v-model="formData.memo" class="field-input field-textarea" placeholder="메모를 입력하세요" rows="3" maxlength="500" />
               </div>
+              <!-- Danger zone (edit mode only) -->
+              <div v-if="editTarget" style="padding-top:16px">
+                <div class="danger-zone">
+                  <p class="danger-zone-title">위험 작업</p>
+                  <button type="button" class="btn btn-danger btn-full" @click="handleDelete">
+                    <AppIcon name="trash" size="sm" />
+                    이 일정 삭제
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
-          <div class="sheet-footer">
-            <button v-if="editTarget" type="button" class="btn btn-danger btn-sm" @click="handleDelete">삭제</button>
-            <div style="display:flex;gap:8px;margin-left:auto">
-              <button type="button" class="btn btn-secondary btn-sm" @click="closeModal">취소</button>
-              <button type="button" class="btn btn-primary btn-sm" @click="handleSave">저장</button>
-            </div>
+          <div class="sticky-footer">
+            <button type="button" class="btn btn-secondary" style="flex:1" @click="closeModal">취소</button>
+            <button type="button" class="btn btn-primary" style="flex:2" @click="handleSave">저장</button>
           </div>
         </div>
       </div>
     </Teleport>
 
     <BottomNavUser />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -238,20 +258,26 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useScheduleStore } from '@/stores/schedule'
+import { useToast } from '@/composables/useToast'
 import { userApi } from '@/api/user'
 import { adminApi } from '@/api/admin'
 import type { Schedule, Category, ThemeKey, ScheduleStatus, TeamRef } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 import BottomNavUser from '@/components/BottomNavUser.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const scheduleStore = useScheduleStore()
+const { success: toastSuccess, error: toastError } = useToast()
 
 const isAdminUser = computed(() =>
   authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'
 )
+
+const themeSheetOpen = ref(false)
 
 // ── Theme ──
 const themes: { key: ThemeKey; color: string; label: string }[] = [
@@ -378,20 +404,30 @@ function validateForm(): boolean {
 
 async function handleSave() {
   if (!validateForm()) return
-  if (editTarget.value) {
-    await scheduleStore.update(editTarget.value.id, { ...formData })
-  } else {
-    await scheduleStore.add({ ...formData })
-    selectedDate.value = formData.date
+  try {
+    if (editTarget.value) {
+      await scheduleStore.update(editTarget.value.id, { ...formData })
+    } else {
+      await scheduleStore.add({ ...formData })
+      selectedDate.value = formData.date
+    }
+    closeModal()
+    toastSuccess('일정이 저장됐습니다.')
+  } catch (e: any) {
+    toastError(e.response?.data?.message || '저장에 실패했습니다.')
   }
-  closeModal()
 }
 
 async function handleDelete() {
   if (!editTarget.value) return
   if (confirm('일정을 삭제하시겠습니까?')) {
-    await scheduleStore.remove(editTarget.value.id)
-    closeModal()
+    try {
+      await scheduleStore.remove(editTarget.value.id)
+      closeModal()
+      toastSuccess('일정이 삭제됐습니다.')
+    } catch {
+      toastError('삭제에 실패했습니다.')
+    }
   }
 }
 

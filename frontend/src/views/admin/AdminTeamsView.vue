@@ -2,16 +2,24 @@
   <div class="shell shell-nav">
     <!-- Top bar -->
     <header class="topbar">
-      <button class="topbar-back" @click="router.push('/admin')">‹</button>
+      <button class="topbar-back" @click="router.push('/admin')"><AppIcon name="chevron-left" size="md" /></button>
       <span class="topbar-title">팀 관리</span>
-      <button class="topbar-action" @click="openAddModal">+ 등록</button>
+      <button class="topbar-action" @click="openAddModal" style="margin-left:auto">+ 등록</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
+      </div>
     </header>
 
     <!-- Search -->
-    <div class="search-wrap">
-      <div class="search-input-wrap">
-        <span class="search-icon">🔍</span>
-        <input v-model="searchQuery" class="search-input" placeholder="팀명 검색..." />
+    <div style="padding:10px 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+      <div class="search-box">
+        <AppIcon name="search" size="sm" style="color:var(--color-text-3);flex-shrink:0" />
+        <input v-model="searchQuery" class="search-box-input" placeholder="팀명 검색" />
       </div>
     </div>
 
@@ -23,45 +31,32 @@
         @click="catFilter = cat.value as Category">{{ cat.label }}</button>
     </div>
 
-    <!-- Summary -->
-    <div class="section" style="margin-top:10px">
-      <div class="summary-panel">
-        <div class="summary-row">
-          <div class="summary-item">
-            <span class="summary-num">{{ teams.filter(t => t.isActive).length }}</span>
-            <div class="summary-label">활성</div>
-          </div>
-          <div class="summary-item">
-            <span class="summary-num" style="color:var(--color-text-3)">{{ teams.filter(t => !t.isActive).length }}</span>
-            <div class="summary-label">비활성</div>
-          </div>
-          <div class="summary-item">
-            <span class="summary-num">{{ teams.length }}</span>
-            <div class="summary-label">전체</div>
-          </div>
-        </div>
-      </div>
+    <!-- Compact summary -->
+    <div class="summary-inline">
+      <span class="sum-num">{{ teams.length }}</span>개
+      <span class="sum-sep">·</span>
+      활성 <span class="sum-num">{{ teams.filter(t => t.isActive).length }}</span>
+      <span class="sum-sep">·</span>
+      비활성 <span class="sum-num">{{ teams.filter(t => !t.isActive).length }}</span>
     </div>
 
     <!-- Team list -->
-    <div class="section" style="margin-top:16px;padding-bottom:16px">
+    <div style="flex:1;overflow-y:auto">
       <div v-if="filteredTeams.length === 0" class="empty">
-        <span class="empty-icon">⚽</span>
-        <p class="empty-text">해당하는 팀이 없습니다</p>
+        <AppIcon name="team" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
+        <p class="empty-text">{{ catFilter ? '해당하는 팀이 없습니다' : '등록된 팀이 없습니다' }}</p>
       </div>
       <div v-else class="row-list">
         <div v-for="t in filteredTeams" :key="t.id" class="row-item" @click="openDetail(t)">
-          <div class="row-icon" :style="{ background: DOT_COLORS[t.category] + '22' }">
+          <div class="team-cat-icon" :style="{ background: DOT_COLORS[t.category] + '22' }">
             <span style="width:10px;height:10px;border-radius:50%;display:inline-block" :style="{ background: DOT_COLORS[t.category] }"></span>
           </div>
           <div class="row-body">
             <div class="row-title">{{ t.name }}</div>
             <div class="row-sub">{{ CATEGORY_LABELS[t.category] }}</div>
           </div>
-          <div class="row-right">
-            <span :class="['badge', t.isActive ? 'badge-active' : 'badge-disabled']">{{ t.isActive ? '활성' : '비활성' }}</span>
-            <span class="row-arrow">›</span>
-          </div>
+          <span :class="['badge', t.isActive ? 'badge-active' : 'badge-disabled']">{{ t.isActive ? '활성' : '비활성' }}</span>
+          <AppIcon name="chevron-right" size="sm" style="color:var(--color-text-3)" />
         </div>
       </div>
     </div>
@@ -73,7 +68,7 @@
           <div class="sheet-handle"></div>
           <div class="sheet-header">
             <span class="sheet-title">{{ editingTeam ? '팀 수정' : '팀 등록' }}</span>
-            <button class="sheet-close" @click="formModal = false">✕</button>
+            <button class="sheet-close" @click="formModal = false"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <form @submit.prevent="saveTeam">
@@ -123,7 +118,7 @@
               <span class="sheet-title">{{ detailTeam.name }}</span>
               <span style="font-size:11px;color:var(--color-text-3);font-weight:500">{{ CATEGORY_LABELS[detailTeam.category] }}</span>
             </div>
-            <button class="sheet-close" @click="detailTeam = null">✕</button>
+            <button class="sheet-close" @click="detailTeam = null"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="sheet-body">
             <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -147,18 +142,29 @@
     </Teleport>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 import { adminApi } from '@/api/admin'
 import type { Team, Company, Category } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const themeSheetOpen = ref(false)
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 const teams = ref<Team[]>([])
 const searchQuery = ref('')
 const catFilter = ref<Category | null>(null)
@@ -273,6 +279,13 @@ async function toggleActive(t: Team) {
 <style scoped>
 .filter-chips-bar { display:flex; gap:6px; padding:8px 16px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--color-border); }
 .filter-chips-bar::-webkit-scrollbar { display:none; }
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--color-surface-2); border-radius: 10px; padding: 0 12px; height: 38px; border: 1px solid var(--color-border); }
+.search-box-input { flex: 1; background: none; border: none; outline: none; font-size: 14px; color: var(--color-text-1); }
+.search-box-input::placeholder { color: var(--color-text-3); }
+.summary-inline { padding: 8px 16px; font-size: 13px; color: var(--color-text-2); border-bottom: 1px solid var(--color-border); }
+.sum-num { font-weight: 600; color: var(--color-text-1); }
+.sum-sep { margin: 0 6px; color: var(--color-text-3); }
+.team-cat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .radio-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:4px; }
 .radio-item { display:flex; align-items:center; gap:6px; padding:8px 10px; border-radius:var(--radius-md); border:1.5px solid var(--color-border); background:var(--color-surface-2); cursor:pointer; font-size:13px; font-weight:500; color:var(--color-text-1); transition:border-color 0.15s,background 0.15s; }
 .radio-item.selected { font-weight:700; }

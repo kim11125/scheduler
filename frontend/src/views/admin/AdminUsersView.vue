@@ -1,7 +1,15 @@
 <template>
-  <div class="page">
-    <header class="app-header">
-      <span class="header-title">👥 사용자 관리</span>
+  <div class="shell shell-nav">
+    <header class="topbar">
+      <span class="topbar-title">사용자 관리</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button class="theme-dot-btn-sm" @click="themeSheetOpen = true" title="테마 변경">
+          <span style="display:block;width:14px;height:14px;border-radius:50%;background:var(--color-primary)"></span>
+        </button>
+        <button class="topbar-icon-btn" @click="handleLogout" title="로그아웃">
+          <AppIcon name="logout" size="md" />
+        </button>
+      </div>
     </header>
 
     <!-- Search -->
@@ -48,10 +56,10 @@
             <span class="user-id">@{{ u.username }}</span>
           </div>
           <span class="status-chip" :class="u.status.toLowerCase()">{{ STATUS_LABELS[u.status] }}</span>
-          <span class="card-arrow">›</span>
+          <AppIcon name="chevron-right" size="sm" class="card-arrow" />
         </div>
         <div v-if="filteredUsers.length === 0" class="empty-state">
-          <span class="empty-icon">👤</span>
+          <AppIcon name="user" size="lg" class="empty-icon" style="color:var(--color-text-3)" />
           <p class="empty-text">사용자가 없어요</p>
         </div>
       </div>
@@ -64,7 +72,7 @@
           <div class="modal-handle"></div>
           <div class="modal-header">
             <h3 class="modal-title">사용자 정보</h3>
-            <button class="modal-close" @click="closeUserModal">✕</button>
+            <button class="modal-close" @click="closeUserModal"><AppIcon name="close" size="sm" /></button>
           </div>
           <div class="modal-body-scroll">
             <div class="user-profile-row">
@@ -101,7 +109,7 @@
               <h4 class="relation-title">소속 회사</h4>
               <div v-if="userCompanies.length > 0" class="relation-chips">
                 <span v-for="uc in userCompanies" :key="uc.companyId" class="relation-chip primary">
-                  {{ uc.companyName }}<button class="chip-remove" @click="removeCompany(uc.companyId)">✕</button>
+                  {{ uc.companyName }}<button class="chip-remove" @click="removeCompany(uc.companyId)" style="display:flex;align-items:center"><AppIcon name="close" size="sm" /></button>
                 </span>
               </div>
               <div class="relation-add-row">
@@ -120,7 +128,7 @@
                   {{ ut.teamName }}
                   <span v-if="ut.isPrimary" class="chip-primary-badge">대표</span>
                   <button v-if="!ut.isPrimary" class="chip-action" @click="setPrimaryTeam(ut.teamId)">대표설정</button>
-                  <button class="chip-remove" @click="removeTeam(ut.teamId)">✕</button>
+                  <button class="chip-remove" @click="removeTeam(ut.teamId)" style="display:flex;align-items:center"><AppIcon name="close" size="sm" /></button>
                 </span>
                 <span v-if="userTeams.length === 0" class="empty-sm">없음</span>
               </div>
@@ -146,6 +154,7 @@
     </Teleport>
 
     <BottomNavAdmin />
+    <ThemeSheet :open="themeSheetOpen" @close="themeSheetOpen = false" />
   </div>
 </template>
 
@@ -158,11 +167,19 @@ import { adminApi } from '@/api/admin'
 import { companyApi } from '@/api/company'
 import { teamApi } from '@/api/team'
 import type { UserStatus } from '@/types'
+import AppIcon from '@/components/AppIcon.vue'
+import ThemeSheet from '@/components/ThemeSheet.vue'
 import type { ManagedUser } from '@/stores/users'
 import BottomNavAdmin from '@/components/BottomNavAdmin.vue'
 
 const router = useRouter()
+const themeSheetOpen = ref(false)
 const authStore = useAuthStore()
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 const usersStore = useUsersStore()
 
 const searchQuery = ref('')
